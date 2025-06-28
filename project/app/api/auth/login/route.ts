@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 
 export async function POST(req: Request) {
   try {
+    console.log("User fetch started");
     const { email, password } = await req.json();
 
     if (!email || !password) {

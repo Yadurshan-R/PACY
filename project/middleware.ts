@@ -6,7 +6,7 @@
 // // List routes that **do not need token**
 // const PUBLIC_ROUTES = ['/login', '/signup', '/api/auth/login', '/api/auth/signup'];
 
-// export function middleware(req: NextRequest) {
+export function middleware() {
 //   const { pathname } = req.nextUrl;
 
 //   // Allow public routes
@@ -30,4 +30,4 @@
 //     console.error('JWT verification failed:', err);
 //     return NextResponse.json({ message: 'Unauthorized: Invalid or expired token' }, { status: 401 });
 //   }
-// }
+ }

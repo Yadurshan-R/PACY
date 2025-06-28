@@ -1,45 +1,32 @@
-'use client';
+import { GalleryVerticalEnd } from "lucide-react"
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { LoginForm } from "@/components/login-form"
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [message, setMessage] = useState('');
-  const router = useRouter();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      localStorage.setItem('token', data.token); // store token
-      router.push('/home'); // navigate to home
-    } else {
-      setMessage(data.message);
-    }
-  };
-
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input name="email" placeholder="Email" type="email" value={formData.email} onChange={handleChange} required /><br />
-        <input name="password" placeholder="Password" type="password" value={formData.password} onChange={handleChange} required /><br />
-        <button type="submit">Login</button>
-      </form>
-      <p>{message}</p>
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <a href="#" className="flex items-center gap-2 font-medium" style={{position:"absolute"}}>
+            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+              <GalleryVerticalEnd className="size-4" />
+            </div>
+            CERTANO
+          </a>
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <LoginForm />
+          </div>
+        </div>
+      </div>
+      <div className="bg-muted relative hidden lg:block">
+        <img
+          src="/images/loginpage.png"
+          alt="Image"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+        />
+      </div>
     </div>
-  );
+  )
 }
