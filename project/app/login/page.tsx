@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { GalleryVerticalEnd } from "lucide-react"
 
 import { LoginForm } from "@/components/login-form"
@@ -15,16 +16,16 @@ export default function LoginPage() {
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
+          <div className="w-full max-w-xs rounded-lg bg-white/10 backdrop-blur-md p-6">
             <LoginForm />
           </div>
         </div>
       </div>
       <div className="bg-muted relative hidden lg:block">
         <img
-          src="/images/loginpage.png"
+          src="/images/loginPageImage.png"
           alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-100"
         />
       </div>
     </div>

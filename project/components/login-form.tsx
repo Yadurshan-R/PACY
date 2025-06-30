@@ -29,15 +29,20 @@ export function LoginForm({
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message || "Login failed");
-        return;
+      if (res.ok && data.isAdmin) {
+        router.push(data.redirect);
       }
-
+      else if(res.ok) {
       // Save token if needed
       localStorage.setItem("token", data.token);
 
       router.push("/home");
+      }
+      else {
+        setError(data.message || "Login failed");
+        return;
+      }
+      
     } catch (err) {
       setError("Something went wrong");
       console.error(err);
@@ -47,9 +52,6 @@ export function LoginForm({
     <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
-        <p className="text-muted-foreground text-sm text-balance">
-          Enter your email below to login to your account
-        </p>
 
       </div>
       <div className="grid gap-6">
