@@ -52,50 +52,62 @@ export default function CreateCertificate() {
     const canvasWidth = 800;
     const canvasHeight = 600;
 
-    canvas.setWidth(canvasWidth);
-    canvas.setHeight(canvasHeight);
-    canvas.clear();
+    try {
+      // Fully reset canvas
+      canvas.clear();
+      canvas.setWidth(canvasWidth);
+      canvas.setHeight(canvasHeight);
 
-    const imgElement = new Image();
-    imgElement.onload = () => {
-      const imgInstance = new fabric.Image(imgElement, {
-        left: 0,
-        top: 0,
-        selectable: false,
-        evented: false,
-        hoverCursor: 'default',
-      });
+      const imgElement = new Image();
+      imgElement.onload = () => {
+        // Protect against canvas being destroyed mid-load
+        if (!editor?.canvas) return;
 
-      imgInstance.scaleToWidth(canvasWidth);
-      imgInstance.scaleToHeight(canvasHeight);
-      canvas.add(imgInstance);
-      imgInstance.sendToBack?.();
-      canvas.renderAll();
-
-      // Add elements after background
-      elements.forEach((el) => {
-        const text = new fabric.IText(el.content || 'Text', {
-          left: el.left,
-          top: el.top,
-          fontSize: el.fontSize,
-          fill: el.fill,
-          editable: true,
-          selectable: true,
-          lockMovementX: true,
-          lockMovementY: true,
-          lockScalingX: true,
-          lockScalingY: true,
-          lockRotation: true,
+        const imgInstance = new fabric.Image(imgElement, {
+          left: 0,
+          top: 0,
+          selectable: false,
+          evented: false,
           hoverCursor: 'default',
         });
-        canvas.add(text);
-      });
 
-      canvas.renderAll();
-    };
+        imgInstance.scaleToWidth(canvasWidth);
+        imgInstance.scaleToHeight(canvasHeight);
+        canvas.add(imgInstance);
+        imgInstance.sendToBack?.();
 
-    imgElement.src = template;
+        // Add text elements
+        elements.forEach((el) => {
+          const text = new fabric.IText(el.content || 'Text', {
+            left: el.left,
+            top: el.top,
+            fontSize: el.fontSize,
+            fill: el.fill,
+            editable: true,
+            selectable: true,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockScalingX: true,
+            lockScalingY: true,
+            lockRotation: true,
+            hoverCursor: 'default',
+          });
+          canvas.add(text);
+        });
+
+        canvas.renderAll();
+      };
+
+      imgElement.onerror = () => {
+        console.error("Failed to load image");
+      };
+
+      imgElement.src = template;
+    } catch (err) {
+      console.error("Error rendering canvas:", err);
+    }
   }, [template, editor, elements]);
+
 
   // STEP 0: Degree selector
   if (!isDegreeSet) {
@@ -139,6 +151,9 @@ export default function CreateCertificate() {
 
         <button
           onClick={() => {
+            if (editor?.canvas) {
+              editor.canvas.clear();  // Properly clear canvas
+            }
             setIsDegreeSet(false);
             setSelectedDegree('');
             setTemplate(null);
