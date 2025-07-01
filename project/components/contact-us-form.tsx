@@ -1,39 +1,46 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useToast } from "@/components/toast-provider"
 
-export function ContactUsForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+interface MousePosition {
+  x: number
+  y: number
+}
+
+interface ValidationError {
+  field: string
+  message: string
+}
+
+export function ContactForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<{ email?: string; message?: string }>({})
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
-  const [cancelMousePosition, setCancelMousePosition] = useState({ x: 0, y: 0 })
+  const [cancelMousePosition, setCancelMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
   const [isCancelHovering, setIsCancelHovering] = useState(false)
-  const [emailMousePosition, setEmailMousePosition] = useState({ x: 0, y: 0 })
+  const [emailMousePosition, setEmailMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
   const [isEmailHovering, setIsEmailHovering] = useState(false)
-  const [messageMousePosition, setMessageMousePosition] = useState({ x: 0, y: 0 })
-  const [isMessageHovering, setIsMessageHovering] = useState(false)
-  const [emailErrorMousePosition, setEmailErrorMousePosition] = useState({ x: 0, y: 0 })
-  const [isEmailErrorHovering, setIsEmailErrorHovering] = useState(false)
-  const [messageErrorMousePosition, setMessageErrorMousePosition] = useState({ x: 0, y: 0 })
-  const [isMessageErrorHovering, setIsMessageErrorHovering] = useState(false)
+  const [passwordMousePosition, setPasswordMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
+  const [isPasswordHovering, setIsPasswordHovering] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
-  const messageRef = useRef<HTMLTextAreaElement>(null)
-  const emailErrorRef = useRef<HTMLParagraphElement>(null)
-  const messageErrorRef = useRef<HTMLParagraphElement>(null)
+  const passwordRef = useRef<HTMLDivElement>(null)
 
+  const { showToast } = useToast()
+
+  // Memoized mouse move handler for performance
   const handleMouseMove = useCallback(
-    (e: MouseEvent, setter: (pos: { x: number; y: number }) => void, ref: React.RefObject<HTMLElement>) => {
+    (e: MouseEvent, setter: (pos: MousePosition) => void, ref: React.RefObject<HTMLElement>) => {
       if (ref.current) {
         const rect = ref.current.getBoundingClientRect()
         setter({
@@ -45,13 +52,14 @@ export function ContactUsForm({ className, ...props }: React.ComponentPropsWitho
     [],
   )
 
+  // Optimized event listeners with cleanup
   useEffect(() => {
-    const container = containerRef.current
-    const cancelButton = cancelRef.current
-    const emailInput = emailRef.current
-    const messageTextarea = messageRef.current
-    const emailError = emailErrorRef.current
-    const messageError = messageErrorRef.current
+    const elements = {
+      container: containerRef.current,
+      cancel: cancelRef.current,
+      email: emailRef.current,
+      password: passwordRef.current,
+    }
 
     const handlers = {
       container: {
@@ -69,46 +77,29 @@ export function ContactUsForm({ className, ...props }: React.ComponentPropsWitho
         mouseenter: () => setIsEmailHovering(true),
         mouseleave: () => setIsEmailHovering(false),
       },
-      message: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setMessageMousePosition, messageRef),
-        mouseenter: () => setIsMessageHovering(true),
-        mouseleave: () => setIsMessageHovering(false),
-      },
-      emailError: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setEmailErrorMousePosition, emailErrorRef),
-        mouseenter: () => setIsEmailErrorHovering(true),
-        mouseleave: () => setIsEmailErrorHovering(false),
-      },
-      messageError: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setMessageErrorMousePosition, messageErrorRef),
-        mouseenter: () => setIsMessageErrorHovering(true),
-        mouseleave: () => setIsMessageErrorHovering(false),
+      password: {
+        mousemove: (e: MouseEvent) => handleMouseMove(e, setPasswordMousePosition, passwordRef),
+        mouseenter: () => setIsPasswordHovering(true),
+        mouseleave: () => setIsPasswordHovering(false),
       },
     }
 
     // Add event listeners
-    const elements = [
-      { element: container, handlers: handlers.container },
-      { element: cancelButton, handlers: handlers.cancel },
-      { element: emailInput, handlers: handlers.email },
-      { element: messageTextarea, handlers: handlers.message },
-      { element: emailError, handlers: handlers.emailError },
-      { element: messageError, handlers: handlers.messageError },
-    ]
-
-    elements.forEach(({ element, handlers }) => {
+    Object.entries(elements).forEach(([key, element]) => {
       if (element) {
-        Object.entries(handlers).forEach(([event, handler]) => {
-          element.addEventListener(event, handler as EventListener)
+        const elementHandlers = handlers[key as keyof typeof handlers]
+        Object.entries(elementHandlers).forEach(([event, handler]) => {
+          element.addEventListener(event, handler as EventListener, { passive: true })
         })
       }
     })
 
     // Cleanup function
     return () => {
-      elements.forEach(({ element, handlers }) => {
+      Object.entries(elements).forEach(([key, element]) => {
         if (element) {
-          Object.entries(handlers).forEach(([event, handler]) => {
+          const elementHandlers = handlers[key as keyof typeof handlers]
+          Object.entries(elementHandlers).forEach(([event, handler]) => {
             element.removeEventListener(event, handler as EventListener)
           })
         }
@@ -116,96 +107,136 @@ export function ContactUsForm({ className, ...props }: React.ComponentPropsWitho
     }
   }, [handleMouseMove])
 
-  const validateForm = (formData: FormData) => {
+  // Memoized validation function
+  const validateForm = useCallback((formData: FormData): ValidationError[] => {
     const email = formData.get("email") as string
-    const message = formData.get("message") as string
-    const newErrors: { email?: string; message?: string } = {}
+    const password = formData.get("password") as string
+    const errors: ValidationError[] = []
 
-    if (!email) {
-      newErrors.email = "Email is required"
+    if (!email?.trim()) {
+      errors.push({ field: "email", message: "Email address is required" })
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address"
+      errors.push({ field: "email", message: "Invalid email address format" })
     }
 
-    if (!message || message.trim().length < 10) {
-      newErrors.message = "Message must be at least 10 characters"
+    if (!password?.trim()) {
+      errors.push({ field: "password", message: "Password is required" })
+    } else if (password.length < 6) {
+      errors.push({ field: "password", message: "Password must be at least 6 characters" })
     }
 
-    return newErrors
-  }
+    return errors
+  }, [])
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const validationErrors = validateForm(formData)
+  // Toast notification handlers
+  const showErrorToast = useCallback(
+    (errors: ValidationError[]) => {
+      const firstError = errors[0]
+      const remainingCount = errors.length - 1
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
-      return
+      const heading = "Validation Error"
+      let subtext = firstError.message
+
+      if (remainingCount > 0) {
+        subtext = `${firstError.message} (${remainingCount} more issue${remainingCount > 1 ? "s" : ""} found)`
+      }
+
+      showToast({
+        type: "error",
+        heading,
+        subtext,
+        duration: 6000,
+      })
+    },
+    [showToast],
+  )
+
+  const showSuccessToast = useCallback(() => {
+    showToast({
+      type: "success",
+      heading: "Login Successful",
+      subtext: "Welcome back! You have been authenticated successfully.",
+      duration: 4000,
+    })
+  }, [showToast])
+
+  const showAuthErrorToast = useCallback(() => {
+    showToast({
+      type: "error",
+      heading: "Authentication Failed",
+      subtext: "Please check your credentials and try again.",
+      duration: 6000,
+    })
+  }, [showToast])
+
+  // Form submission handler
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+
+      const formData = new FormData(e.currentTarget)
+      const validationErrors = validateForm(formData)
+
+      if (validationErrors.length > 0) {
+        showErrorToast(validationErrors)
+        // Focus first invalid field for accessibility
+        const firstErrorField = validationErrors[0].field
+        if (firstErrorField === "email" && emailRef.current) {
+          emailRef.current.focus()
+        } else if (firstErrorField === "password" && passwordRef.current?.querySelector("input")) {
+          ;(passwordRef.current.querySelector("input") as HTMLInputElement).focus()
+        }
+        return
+      }
+
+      setIsLoading(true)
+
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        showSuccessToast()
+        console.log("Login successful")
+      } catch (error) {
+        showAuthErrorToast()
+        console.error("Login failed:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [validateForm, showErrorToast, showSuccessToast, showAuthErrorToast],
+  )
+
+  // Memoized glass style calculation for performance
+  const getGlassStyle = useMemo(() => {
+    return (mousePos: MousePosition, isVisible: boolean) => {
+      if (!isVisible) return {}
+
+      return {
+        background: `
+          radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${mousePos.y}px, 
+            rgba(255,255,255,0.18) 0%, 
+            rgba(255,255,255,0.08) 30%, 
+            rgba(255,255,255,0.04) 50%,
+            transparent 70%),
+          radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${mousePos.y - 10}px, 
+            rgba(255,255,255,0.22) 0%, 
+            rgba(255,255,255,0.1) 40%, 
+            transparent 70%)
+        `,
+        mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        maskComposite: "xor" as const,
+        WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        WebkitMaskComposite: "xor" as const,
+        padding: "1px",
+        filter: "blur(0.8px) contrast(1.1)",
+      }
     }
+  }, [])
 
-    setErrors({})
-    setIsLoading(true)
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log("Message sent successfully")
-      // Reset form
-      e.currentTarget.reset()
-    } catch (error) {
-      console.error("Failed to send message:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const getGlassStyle = (mousePos: { x: number; y: number }, isVisible: boolean) => {
-    if (!isVisible) return {}
-
-    return {
-      background: `
-        radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${mousePos.y}px, 
-          rgba(255,255,255,0.18) 0%, 
-          rgba(255,255,255,0.08) 30%, 
-          rgba(255,255,255,0.04) 50%,
-          transparent 70%),
-        radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${mousePos.y - 10}px, 
-          rgba(255,255,255,0.22) 0%, 
-          rgba(255,255,255,0.1) 40%, 
-          transparent 70%)
-      `,
-      mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
-      maskComposite: "xor" as const,
-      WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
-      WebkitMaskComposite: "xor" as const,
-      padding: "1px",
-      filter: "blur(0.8px) contrast(1.1)",
-    }
-  }
-
-  const getRedGlassStyle = (mousePos: { x: number; y: number }, isVisible: boolean) => {
-    if (!isVisible) return {}
-
-    return {
-      background: `
-        radial-gradient(ellipse 60px 40px at ${mousePos.x}px ${mousePos.y}px, 
-          rgba(239,68,68,0.15) 0%, 
-          rgba(239,68,68,0.08) 30%, 
-          rgba(239,68,68,0.04) 50%,
-          transparent 70%),
-        radial-gradient(ellipse 30px 20px at ${mousePos.x - 10}px ${mousePos.y - 8}px, 
-          rgba(239,68,68,0.18) 0%, 
-          rgba(239,68,68,0.1) 40%, 
-          transparent 70%)
-      `,
-      mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
-      maskComposite: "xor" as const,
-      WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
-      WebkitMaskComposite: "xor" as const,
-      padding: "1px",
-      filter: "blur(0.6px) contrast(1.1)",
-    }
-  }
+  // Password toggle handler
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword((prev) => !prev)
+  }, [])
 
   return (
     <>
@@ -225,43 +256,160 @@ export function ContactUsForm({ className, ...props }: React.ComponentPropsWitho
             opacity: 1; 
           }
         }
+
+        @keyframes appleSlideUp {
+          0% { 
+            opacity: 0; 
+            transform: translateY(30px) scale(0.95);
+          }
+          100% { 
+            opacity: 1; 
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes appleSlideUpStaggered {
+          0% { 
+            opacity: 0; 
+            transform: translateY(20px);
+          }
+          100% { 
+            opacity: 1; 
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes smoothButtonBounce {
+          0% { transform: scale(1); }
+          50% { transform: scale(0.96); }
+          100% { transform: scale(1); }
+        }
+
+        @keyframes appleGentleBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
+        }
+
+        .animate-apple-fade {
+          animation: appleSlideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-apple-stagger-1 {
+          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+        }
+
+        .animate-apple-stagger-2 {
+          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        }
+
+        .animate-apple-stagger-3 {
+          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+        }
+
+        .animate-apple-stagger-4 {
+          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+        }
+
+        .smooth-button-bounce:active:not(:disabled) {
+          animation: smoothButtonBounce 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .apple-hover-lift:hover {
+          transform: translateY(-1px);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .apple-gentle-bounce {
+          animation: appleGentleBounce 3s ease-in-out infinite;
+        }
+
+        .apple-smooth {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Remove all focus outlines */
+        .no-outline:focus,
+        .no-outline:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        /* Remove browser default focus styles */
+        input:focus,
+        button:focus,
+        a:focus,
+        input:focus-visible,
+        button:focus-visible,
+        a:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .animate-apple-fade,
+          .animate-apple-stagger-1,
+          .animate-apple-stagger-2,
+          .animate-apple-stagger-3,
+          .animate-apple-stagger-4,
+          .apple-gentle-bounce {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+          
+          .apple-smooth,
+          .apple-hover-lift:hover {
+            transition: none;
+          }
+          
+          .smooth-button-bounce:active:not(:disabled) {
+            animation: none;
+          }
+        }
       `}</style>
 
-      <div className={cn("flex flex-col gap-6 sm:gap-8 w-full max-w-sm mx-auto", className)} {...props}>
-        <div className="text-center">
+     <div className={cn("flex flex-col gap-8 sm:gap-12 w-full max-w-lg mx-auto", className)} {...props}>
+        <header className="text-center animate-apple-stagger-1">
           <h1
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-light tracking-normal relative"
             style={{
               animation: "textGlow 6s ease-in-out infinite",
             }}
           >
-            Contact us for your Certara
+            Contact Us For Your Certara
             <span
-              className="inline-block w-1 h-1 bg-white rounded-full mx-1"
+              className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1 apple-gentle-bounce"
               style={{
-                animation: "subtlePulse 4s ease-in-out infinite",
+                animation: "subtlePulse 4s ease-in-out infinite, appleGentleBounce 3s ease-in-out infinite",
               }}
+              aria-hidden="true"
             />
-            account
+            <span className="pl-1">account</span>
           </h1>
-        </div>
+        </header>
 
-        <div
+        <main
           ref={containerRef}
-          className="relative rounded-xl p-6 sm:p-8 overflow-visible border border-white/20 transition-all duration-300 backdrop-blur-sm"
+          className="relative rounded-xl p-8 sm:p-10 overflow-visible border border-white/20 apple-smooth backdrop-blur-sm animate-apple-fade apple-hover-lift"
         >
           {isHovering && (
             <div
-              className="absolute inset-0 rounded-xl pointer-events-none transition-opacity duration-300"
+              className="absolute inset-0 rounded-xl pointer-events-none apple-smooth"
               style={getGlassStyle(mousePosition, isHovering)}
+              aria-hidden="true"
             />
           )}
 
-          <form onSubmit={handleSubmit} className="relative z-10">
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email" className="text-white text-sm font-medium">
-                  Email
+          <form onSubmit={handleSubmit} className="relative z-10" noValidate>
+            <fieldset
+              disabled={isLoading}
+              className="flex flex-col gap-8 disabled:opacity-75 disabled:pointer-events-none"
+            >
+              <legend className="sr-only">Login credentials</legend>
+
+              <div className="grid gap-4 animate-apple-stagger-2">
+                <Label htmlFor="email" className="text-white text-sm font-medium apple-smooth">
+                  Enter Your Email Address
                 </Label>
                 <div className="relative">
                   <Input
@@ -269,161 +417,134 @@ export function ContactUsForm({ className, ...props }: React.ComponentPropsWitho
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter Your Email Address"
+                    autoComplete="email"
                     required
-                    aria-invalid={errors.email ? "true" : "false"}
-                    aria-describedby={errors.email ? "email-error" : undefined}
-                    className={cn(
-                      "bg-transparent border transition-all duration-300 rounded-lg text-white placeholder:text-white/50 h-12 px-4 focus:ring-2 focus:ring-white/20 focus:ring-offset-0",
-                      errors.email
-                        ? "border-red-400/60 focus:border-red-400/80"
-                        : "border-white/20 focus:border-white/40",
-                    )}
+                    aria-describedby="email-description"
+                    className="bg-transparent border border-white/20 focus:border-white/40 apple-smooth rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
                   />
                   {isEmailHovering && (
                     <div
-                      className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-300"
+                      className="absolute inset-0 rounded-lg pointer-events-none apple-smooth"
                       style={getGlassStyle(emailMousePosition, isEmailHovering)}
+                      aria-hidden="true"
                     />
                   )}
                 </div>
-                {errors.email && (
-                  <div className="relative">
-                    <p
-                      ref={emailErrorRef}
-                      id="email-error"
-                      className="relative text-red-400 text-xs mt-1 p-2 rounded-lg bg-red-500/10 border border-red-400/20 backdrop-blur-sm overflow-hidden"
-                      role="alert"
-                    >
-                      {isEmailErrorHovering && (
-                        <div
-                          className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-300"
-                          style={getRedGlassStyle(emailErrorMousePosition, isEmailErrorHovering)}
-                        />
-                      )}
-                      <span className="relative z-10">{errors.email}</span>
-                    </p>
-                  </div>
-                )}
+                <div id="email-description" className="sr-only">
+                  Enter your registered email address
+                </div>
               </div>
 
-              <div className="grid gap-3">
-                <Label htmlFor="message" className="text-white text-sm font-medium">
-                  How can we help?
+              <div className="grid gap-4 animate-apple-stagger-3">
+                <Label htmlFor="password" className="text-white text-sm font-medium apple-smooth">
+                  Enter Your Password
                 </Label>
-                <div className="relative">
-                  <Textarea
-                    ref={messageRef}
-                    id="message"
-                    name="message"
-                    placeholder="Tell us what you need help with..."
+                <div ref={passwordRef} className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     required
-                    rows={4}
-                    aria-invalid={errors.message ? "true" : "false"}
-                    aria-describedby={errors.message ? "message-error" : undefined}
-                    className={cn(
-                      "bg-transparent border transition-all duration-300 rounded-lg text-white placeholder:text-white/50 p-4 focus:ring-2 focus:ring-white/20 focus:ring-offset-0 resize-none",
-                      errors.message
-                        ? "border-red-400/60 focus:border-red-400/80"
-                        : "border-white/20 focus:border-white/40",
-                    )}
+                    aria-describedby="password-description"
+                    className="bg-transparent border border-white/20 focus:border-white/40 apple-smooth rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
                   />
-                  {isMessageHovering && (
+                  {isPasswordHovering && (
                     <div
-                      className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-300"
-                      style={getGlassStyle(messageMousePosition, isMessageHovering)}
+                      className="absolute inset-0 rounded-lg pointer-events-none apple-smooth"
+                      style={getGlassStyle(passwordMousePosition, isPasswordHovering)}
+                      aria-hidden="true"
                     />
                   )}
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white apple-smooth hover:scale-110 z-20 no-outline rounded p-1 smooth-button-bounce"
+                  >
+                    {showPassword ? (
+                      <Eye className="h-5 w-5 apple-smooth" aria-hidden="true" />
+                    ) : (
+                      <EyeOff className="h-5 w-5 apple-smooth" aria-hidden="true" />
+                    )}
+                  </button>
                 </div>
-                {errors.message && (
-                  <div className="relative">
-                    <p
-                      ref={messageErrorRef}
-                      id="message-error"
-                      className="relative text-red-400 text-xs mt-1 p-2 rounded-lg bg-red-500/10 border border-red-400/20 backdrop-blur-sm overflow-hidden"
-                      role="alert"
-                    >
-                      {isMessageErrorHovering && (
-                        <div
-                          className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-300"
-                          style={getRedGlassStyle(messageErrorMousePosition, isMessageErrorHovering)}
-                        />
-                      )}
-                      <span className="relative z-10">{errors.message}</span>
-                    </p>
-                  </div>
-                )}
+                <div id="password-description" className="sr-only">
+                  Enter your account password. Minimum 6 characters required.
+                </div>
               </div>
 
-              <div className="flex gap-4 mt-2">
+              <div className="flex gap-4 animate-apple-stagger-4">
                 <Button
                   ref={cancelRef}
                   type="button"
                   variant="outline"
                   disabled={isLoading}
-                  className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg transition-all duration-300 rounded-lg text-white hover:text-white h-12 focus:ring-2 focus:ring-white/20 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg apple-smooth rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 smooth-button-bounce apple-hover-lift"
                 >
                   {isCancelHovering && !isLoading && (
                     <div
-                      className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-300"
+                      className="absolute inset-0 rounded-lg pointer-events-none apple-smooth"
                       style={getGlassStyle(cancelMousePosition, isCancelHovering)}
+                      aria-hidden="true"
                     />
                   )}
                   <span className="relative z-10">Cancel</span>
                 </Button>
+
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-white text-black hover:bg-white/90 transition-all duration-300 rounded-lg h-12 font-medium focus:ring-2 focus:ring-white/20 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-white text-black hover:bg-white/90 apple-smooth rounded-lg h-12 font-medium no-outline disabled:opacity-50 disabled:cursor-not-allowed smooth-button-bounce apple-hover-lift"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      <span>Signing in...</span>
+                      <span className="sr-only">Please wait while we authenticate your credentials</span>
                     </>
                   ) : (
-                    <>Send Message</>
+                    "Sign In"
                   )}
                 </Button>
               </div>
-            </div>
-            <div className="mt-6 text-center text-sm">
-              <span className="text-white/70">Already have an account? </span>
+            </fieldset>
+
+            <div className="mt-6 text-center text-sm animate-apple-stagger-4">
+              <span className="text-white/70">Don&apos;t have an account? </span>
               <a
-                href="/sign-in"
-                className="underline underline-offset-4 text-white hover:text-white/80 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-0 rounded"
+                href="/contact-us"
+                className="underline underline-offset-4 text-white hover:text-white/80 apple-smooth no-outline rounded apple-hover-lift"
               >
-                Sign in
+                Contact us
               </a>
             </div>
           </form>
-        </div>
+        </main>
 
-        <div className="text-center text-xs text-white/40 space-y-2">
-          <p>© 2025 Certara. All rights reserved.</p>
-          <div className="flex justify-center gap-4 flex-wrap">
-            <a
-              href="#"
-              className="hover:text-white/60 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-0 rounded"
-            >
-              Privacy Policy
-            </a>
-            <span className="hidden sm:inline">•</span>
-            <a
-              href="#"
-              className="hover:text-white/60 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-0 rounded"
-            >
-              Terms of Service
-            </a>
-            <span className="hidden sm:inline">•</span>
-            <a
-              href="/sign-in"
-              className="hover:text-white/60 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-0 rounded"
-            >
-              Support
-            </a>
-          </div>
-        </div>
+        <footer className="text-center text-xs text-white/40 space-y-2 animate-apple-stagger-4">
+          <p>© 2025 Certera. All rights reserved.</p>
+          <nav aria-label="Footer navigation">
+            <div className="flex justify-center gap-4 flex-wrap">
+              <a href="#" className="hover:text-white/60 apple-smooth no-outline rounded apple-hover-lift">
+                Privacy Policy
+              </a>
+              <span className="hidden sm:inline" aria-hidden="true">
+                •
+              </span>
+              <a href="#" className="hover:text-white/60 apple-smooth no-outline rounded apple-hover-lift">
+                Terms of Service
+              </a>
+              <span className="hidden sm:inline" aria-hidden="true">
+                •
+              </span>
+              <a href="#" className="hover:text-white/60 apple-smooth no-outline rounded apple-hover-lift">
+                Support
+              </a>
+            </div>
+          </nav>
+        </footer>
       </div>
     </>
   )
