@@ -35,6 +35,7 @@ export function LoginForm({
       else if(res.ok) {
       // Save token if needed
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userID", data.userID);
 
       router.push("/home");
       }
