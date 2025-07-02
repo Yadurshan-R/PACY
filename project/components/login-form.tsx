@@ -184,7 +184,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         if (firstErrorField === "email" && emailRef.current) {
           emailRef.current.focus()
         } else if (firstErrorField === "password" && passwordRef.current?.querySelector("input")) {
-          ;(passwordRef.current.querySelector("input") as HTMLInputElement).focus()
+          ; (passwordRef.current.querySelector("input") as HTMLInputElement).focus()
         }
         return
       }
@@ -438,6 +438,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               <div className="grid gap-4 animate-apple-stagger-3">
                 <Label htmlFor="password" className="text-white text-sm font-medium apple-smooth">
                   Enter Your Password
+                  <span className="pl-40 text-gray-300 hover:text-gray-400 transition-colors duration-300">
+                    Forgot Password?
+                  </span>
                 </Label>
                 <div ref={passwordRef} className="relative">
                   <Input
@@ -510,17 +513,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 </Button>
               </div>
             </fieldset>
-
-            <div className="mt-6 text-center text-sm animate-apple-stagger-4">
-              <span className="text-white/70">Don&apos;t have an account? </span>
-              <a
-                href="/contact-us"
-                className="underline underline-offset-4 text-white hover:text-white/80 apple-smooth no-outline rounded apple-hover-lift"
-              >
-                Contact us
-              </a>
-            </div>
           </form>
+          <div className="pt-4"></div>
         </main>
 
         <footer className="text-center text-xs text-white/40 space-y-2 animate-apple-stagger-4">
