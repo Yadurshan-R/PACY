@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       email: user.email,
     }, JWT_SECRET, { expiresIn: '1h' });
 
-    return NextResponse.json({ message: "Login successful", token });
+    return NextResponse.json({ message: "Login successful", token, userID: user.id });
 
   } catch (err) {
     console.error("Login error:", err);

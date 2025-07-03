@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import connect from '@/lib/db';
 import User from '@/lib/models/user';
-import bcrypt from 'bcryptjs';
+
 
 export async function POST(req: Request) {
   try {
-    const { firstName, lastName, phoneNo, email, password } = await req.json();
+    const { email, password } = await req.json();
 
-    if (!email || !password || !firstName || !lastName || !phoneNo) {
+    if (!email || !password ) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
@@ -20,16 +20,14 @@ export async function POST(req: Request) {
     }
 
     // Hash password to store in verificationCode (since your model doesn't have a password field, we can extend or use verificationCode as demo)
-    const hashedCode = await bcrypt.hash(password, 10);
+    
 
     // Create user
    const newUser = new User({
   id: crypto.randomUUID(),
-  firstName,
-  lastName,
-  phoneNo,
+  
   email,
-  password: hashedCode,   // store hashed password here
+  password: password,   // store hashed password here
   // verificationCode: ... (if you still need it separately)
 });
 
