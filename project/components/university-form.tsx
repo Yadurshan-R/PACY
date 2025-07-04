@@ -1055,7 +1055,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
               </fieldset>
             </form>
           )}
-
         </main>
         <footer className="text-center text-xs text-white/40 space-y-2 animate-stagger-4">
           <p>© 2025 Certera. All rights reserved.</p>
