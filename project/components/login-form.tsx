@@ -346,7 +346,7 @@ const showAuthErrorToast = useCallback(
               animation: "textGlow 6s ease-in-out infinite",
             }}
           >
-            Login to your Certara
+            Sign in to your Certara
             <span
               className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1"
               style={{

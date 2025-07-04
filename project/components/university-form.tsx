@@ -67,6 +67,8 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
   const [isBackButtonHovering, setIsBackButtonHovering] = useState(false)
   const [submitButtonMousePosition, setSubmitButtonMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
   const [isSubmitButtonHovering, setIsSubmitButtonHovering] = useState(false)
+  const [isCancelHovering, setIsCancelHovering] = useState(false)
+  const [cancelMousePosition, setCancelMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -79,6 +81,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
   const continueButtonRef = useRef<HTMLButtonElement>(null)
   const backButtonRef = useRef<HTMLButtonElement>(null)
   const submitButtonRef = useRef<HTMLButtonElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
 
   // Fetch universities from API
   useEffect(() => {
@@ -102,7 +105,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
     fetchUniversities()
   }, [])
 
-  // Fetch cities from API
   useEffect(() => {
     const fetchCities = async () => {
       setLoadingCities(true)
@@ -199,7 +201,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
         toast.error("File Too Large", {
           description: "Please select an image smaller than 5MB",
           duration: 4000,
@@ -282,9 +283,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
   const handleBackToForm = useCallback(() => {
     setShowUsers(false)
-    // Reset animations by forcing a re-render
     setTimeout(() => {
-      // This ensures animations restart when returning to form
     }, 50)
   }, [])
 
@@ -308,7 +307,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
           logo: logoBase64 || null,
         }
 
-        // Send to API
         const response = await fetch("/api/universities", {
           method: "POST",
           headers: {
@@ -320,13 +318,11 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
         if (response.ok) {
           const result = await response.json()
 
-          // Add the new university to the list
           setUniversities((prev) => [...prev, result.university])
 
           console.log("University data:", result.university)
           showSuccessToast()
 
-          // Reset form
           setFormData({
             universityName: "",
             location: "",
@@ -337,7 +333,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
           setLogoBase64("")
           setCurrentStep(1)
 
-          // Redirect to dashboard or next step
           setTimeout(() => {
             window.location.href = "/dashboard"
           }, 1500)
@@ -561,7 +556,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                 animation: "textGlow 6s ease-in-out infinite",
               }}
             >
-              Universities
+              Organizations
               <span
                 className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1"
                 style={{
@@ -570,7 +565,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                 aria-hidden="true"
               />
             </h1>
-            <p className="text-white/60 text-sm mt-4">View all universities currently in the database</p>
           </header>
 
           <main
@@ -587,7 +581,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-white/70" />
-                <span className="text-white/70 text-sm">Total Universities: {universities.length}</span>
+                <span className="text-white/70 text-sm">Total Organizations: {universities.length}</span>
               </div>
               <Button
                 ref={backButtonRef}
@@ -612,14 +606,14 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
             {loadingUniversities ? (
               <div className="text-center py-12">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white mx-auto mb-4" />
-                <p className="text-white/70 text-sm">Loading universities...</p>
+                <p className="text-white/70 text-sm">Loading Organizations...</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/20">
-                      <th className="text-left text-white/80 text-sm font-medium py-3 px-4">University Name</th>
+                      <th className="text-left text-white/80 text-sm font-medium py-3 px-4">Organisation Name</th>
                       <th className="text-left text-white/80 text-sm font-medium py-3 px-4">Location</th>
                       <th className="text-left text-white/80 text-sm font-medium py-3 px-4">Email Address</th>
                       <th className="text-left text-white/80 text-sm font-medium py-3 px-4">Contact No</th>
@@ -763,7 +757,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
               animation: "textGlow 6s ease-in-out infinite",
             }}
           >
-            Setup Your University
+            Setup Your Organization
             <span
               className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1"
               style={{
@@ -790,7 +784,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
               <div className="flex flex-col gap-8">
                 <div className="grid gap-4 animate-stagger-2">
                   <Label htmlFor="universityName" className="text-white text-sm font-medium smooth-transition">
-                    University Name
+                    Enter Your Organization Name
                   </Label>
                   <div className="relative">
                     <Input
@@ -802,7 +796,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                       value={formData.universityName}
                       onChange={(e) => updateFormData("universityName", e.target.value)}
                       className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
-                      placeholder="Enter your university name"
                     />
                     {isUniNameHovering && (
                       <div
@@ -816,7 +809,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
                 <div className="grid gap-4 animate-stagger-3">
                   <Label htmlFor="location" className="text-white text-sm font-medium smooth-transition">
-                    Location
+                    Enter Your Location
                   </Label>
                   <div ref={locationRef} className="relative">
                     <Select
@@ -824,8 +817,8 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                       onValueChange={(value) => updateFormData("location", value)}
                       disabled={loadingCities}
                     >
-                      <SelectTrigger className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white h-12 px-4 no-outline w-full">
-                        <SelectValue placeholder={loadingCities ? "Loading cities..." : "Select your city"} />
+                      <SelectTrigger className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white h-20 px-5 no-outline w-full">
+                        <SelectValue placeholder={loadingCities ? "Loading cities..." : ""} />
                       </SelectTrigger>
                       <SelectContent className="bg-black border border-white/20 rounded-lg max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)]">
                         {cities.map((city) => (
@@ -851,21 +844,23 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
                 <div className="flex gap-4 animate-stagger-4">
                   <Button
-                    ref={viewButtonRef}
+                    ref={cancelRef}
                     type="button"
-                    onClick={handleViewUsers}
                     variant="outline"
-                    className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline hover-lift"
+                    disabled={isLoading}
+                    onClick={() => (window.location.href = "/sign-in")}
+                    className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
                   >
-                    {isViewButtonHovering && (
+                    {isCancelHovering && !isLoading && (
                       <div
                         className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                        style={getGlassStyle(viewButtonMousePosition, isViewButtonHovering)}
+                        style={getGlassStyle(cancelMousePosition, isCancelHovering)}
                         aria-hidden="true"
                       />
                     )}
-                    <span className="relative z-10">View Universities</span>
+                    <span className="relative z-10 flex-row">Cancel</span>
                   </Button>
+
                   <Button
                     ref={continueButtonRef}
                     type="button"
@@ -887,7 +882,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
                 <div className="grid gap-4 animate-stagger-2">
                   <Label htmlFor="email" className="text-white text-sm font-medium smooth-transition">
-                    Email Address
+                    Enter Your Email Address
                   </Label>
                   <div className="relative">
                     <Input
@@ -899,7 +894,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                       value={formData.email}
                       onChange={(e) => updateFormData("email", e.target.value)}
                       className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
-                      placeholder="Enter your email address"
                     />
                     {isEmailHovering && (
                       <div
@@ -913,7 +907,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
                 <div className="grid gap-4 animate-stagger-3">
                   <Label htmlFor="contactNumber" className="text-white text-sm font-medium smooth-transition">
-                    Contact Number
+                    Enter Your Contact Number
                   </Label>
                   <div className="relative">
                     <Input
@@ -925,7 +919,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                       value={formData.contactNumber}
                       onChange={(e) => updateFormData("contactNumber", e.target.value)}
                       className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
-                      placeholder="Enter your contact number"
                     />
                     {isContactHovering && (
                       <div
@@ -938,7 +931,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
                 </div>
 
                 <div className="grid gap-4 animate-stagger-4">
-                  <Label className="text-white text-sm font-medium smooth-transition">University Logo (Optional)</Label>
+                  <Label className="text-white text-sm font-medium smooth-transition">Enter Your Organization Logo</Label>
 
                   {!logoFile ? (
                     <div
@@ -975,13 +968,9 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
                         <div className="space-y-2">
                           <p className="text-white/80 text-base font-medium">
-                            {dragActive ? "Drop your logo here" : "Upload University Logo"}
+                            {dragActive ? "Drop your logo here" : "Upload Your Organization Logo"}
                           </p>
-                          <p className="text-white/60 text-sm">Click to browse or drag and drop your image</p>
                           <div className="flex items-center justify-center gap-2 text-white/40 text-xs">
-                            <span>PNG, JPG, GIF</span>
-                            <span>•</span>
-                            <span>Max 5MB</span>
                           </div>
                         </div>
                       </div>
@@ -1030,23 +1019,21 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
                 <div className="flex gap-4 pt-4">
                   <Button
-                    ref={viewButtonRef}
+                    ref={cancelRef}
                     type="button"
-                    onClick={handleViewUsers}
                     variant="outline"
+                    disabled={isLoading}
+                    onClick={() => setCurrentStep(1)}
                     className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
                   >
-                    {isViewButtonHovering && !isLoading && (
+                    {isCancelHovering && !isLoading && (
                       <div
                         className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                        style={getGlassStyle(viewButtonMousePosition, isViewButtonHovering)}
+                        style={getGlassStyle(cancelMousePosition, isCancelHovering)}
                         aria-hidden="true"
                       />
                     )}
-                    <span className="relative z-10 flex items-center">
-                      <Users className="h-4 w-4 mr-2" />
-                      View Universities
-                    </span>
+                    <span className="relative z-10 flex-row">Cancel</span>
                   </Button>
 
                   <Button
@@ -1068,7 +1055,48 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
               </fieldset>
             </form>
           )}
+
         </main>
+        <footer className="text-center text-xs text-white/40 space-y-2 animate-stagger-4">
+          <p>© 2025 Certera. All rights reserved.</p>
+          <nav aria-label="Footer navigation">
+            <div className="flex justify-center gap-4 flex-wrap">
+              <a href="#" className="hover:text-white/60 smooth-transition no-outline rounded hover-lift">
+                Privacy Policy
+              </a>
+              <span className="hidden sm:inline" aria-hidden="true">
+                •
+              </span>
+              <a href="#" className="hover:text-white/60 smooth-transition no-outline rounded hover-lift">
+                Terms of Service
+              </a>
+              <span className="hidden sm:inline" aria-hidden="true">
+                •
+              </span>
+              <a href="#" className="hover:text-white/60 smooth-transition no-outline rounded hover-lift">
+                Support
+              </a>
+            </div>
+          </nav>
+        </footer>
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            ref={viewButtonRef}
+            type="button"
+            onClick={handleViewUsers}
+            variant="outline"
+            className="relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 px-6 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
+          >
+            {isViewButtonHovering && !isLoading && (
+              <div
+                className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
+                style={getGlassStyle(viewButtonMousePosition, isViewButtonHovering)}
+                aria-hidden="true"
+              />
+            )}
+            <span className="relative z-10 flex items-center">View Organizations</span>
+          </Button>
+        </div>
       </div>
     </>
   )
