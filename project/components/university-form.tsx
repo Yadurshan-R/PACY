@@ -772,9 +772,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
               aria-hidden="true"
             />
           </h1>
-          <p className="text-white/60 text-sm mt-4">
-            {currentStep === 1 ? "Let's start with basic information" : "Complete your university profile"}
-          </p>
         </header>
 
         <main

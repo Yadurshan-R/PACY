@@ -1,7 +1,10 @@
-export default function HomePage() {
+import { UniversitySetupForm } from "@/components/university-form"
+
+
+export default function SetupPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100">
-      <h1 className="text-2xl font-semibold">Hello, Next.js!</h1>
-    </main>
-  );
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <UniversitySetupForm />
+    </div>
+  )
 }

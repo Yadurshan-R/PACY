@@ -145,12 +145,15 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     })
   }, [])
 
-  const showAuthErrorToast = useCallback(() => {
-    toast.error("Authentication Failed", {
-      description: "Please check your credentials and try again.",
+const showAuthErrorToast = useCallback(
+  (heading: string, description: string) => {
+    toast.error(heading, {
+      description,
       duration: 6000,
-    })
-  }, [])
+    });
+  },
+  []
+);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -185,7 +188,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       if (res.ok && data.isAdmin) {
         showSuccessToast()
         console.log("Login as Admin successful ")
-        setTimeout(() => {router.push(data.redirect); }, 2000);
+        setTimeout(() => {router.push(data.redirect); }, 1500);
       }
       else if(res.ok) {
       showSuccessToast()
