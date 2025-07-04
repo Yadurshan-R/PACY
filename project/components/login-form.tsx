@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useToast } from "@/components/toast-provider"
+import { useRouter } from "next/navigation";
 
 interface MousePosition {
   x: number
@@ -20,6 +21,7 @@ interface ValidationError {
 }
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
@@ -160,14 +162,17 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     })
   }, [showToast])
 
-  const showAuthErrorToast = useCallback(() => {
+const showAuthErrorToast = useCallback(
+  (heading: string, subtext: string) => {
     showToast({
       type: "error",
-      heading: "Authentication Failed",
-      subtext: "Please check your credentials and try again.",
+      heading,
+      subtext,
       duration: 6000,
-    })
-  }, [showToast])
+    });
+  },
+  [showToast]
+);
 
   // Form submission handler
   const handleSubmit = useCallback(
@@ -192,18 +197,40 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       setIsLoading(true)
 
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+         const email = formData.get("email") as string
+      const password = formData.get("password") as string
+
+      const res = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.isAdmin) {
         showSuccessToast()
-        console.log("Login successful")
+        console.log("Login as Admin successful ")
+        setTimeout(() => {router.push(data.redirect); }, 2000);
+      }
+      else if(res.ok) {
+      showSuccessToast()
+      console.log("Login as Admin successful ")
+      router.push("/home");
+      }
+      else {
+        showAuthErrorToast(data.heading, data.message);
+        console.error("Login failed:", data.message)
+      }
+        
       } catch (error) {
-        showAuthErrorToast()
+       showAuthErrorToast("Internal Server Error", "An unexpected error occurred. Please try again later.");
         console.error("Login failed:", error)
       } finally {
         setIsLoading(false)
       }
     },
-    [validateForm, showErrorToast, showSuccessToast, showAuthErrorToast],
+    [router, validateForm, showErrorToast, showSuccessToast, showAuthErrorToast],
   )
 
   // Memoized glass style calculation for performance
