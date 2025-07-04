@@ -1,10 +1,14 @@
 import type React from "react"
 import type { Metadata } from "next"
-import ClientLayout from "./ClientLayout"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { Toaster } from "sonner"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Login Form",
-  description: "Beautiful glass morphism login form",
+  title: "Certara Login",
+  description: "Login to your Certara account",
 }
 
 export default function RootLayout({
@@ -12,5 +16,23 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <ClientLayout>{children}</ClientLayout>
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
+        <Toaster
+          theme="dark"
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              color: "white",
+              backdropFilter: "blur(12px)",
+            },
+          }}
+        />
+      </body>
+    </html>
+  )
 }

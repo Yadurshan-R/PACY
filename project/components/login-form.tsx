@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { useToast } from "@/components/toast-provider"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation";
 
 interface MousePosition {
@@ -38,9 +38,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLDivElement>(null)
 
-  const { showToast } = useToast()
-
-  // Memoized mouse move handler for performance
   const handleMouseMove = useCallback(
     (e: MouseEvent, setter: (pos: MousePosition) => void, ref: React.RefObject<HTMLElement>) => {
       if (ref.current) {
@@ -54,7 +51,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     [],
   )
 
-  // Optimized event listeners with cleanup
   useEffect(() => {
     const elements = {
       container: containerRef.current,
@@ -86,7 +82,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       },
     }
 
-    // Add event listeners
     Object.entries(elements).forEach(([key, element]) => {
       if (element) {
         const elementHandlers = handlers[key as keyof typeof handlers]
@@ -96,7 +91,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       }
     })
 
-    // Cleanup function
     return () => {
       Object.entries(elements).forEach(([key, element]) => {
         if (element) {
@@ -109,7 +103,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     }
   }, [handleMouseMove])
 
-  // Memoized validation function
   const validateForm = useCallback((formData: FormData): ValidationError[] => {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
@@ -130,61 +123,43 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     return errors
   }, [])
 
-  // Toast notification handlers
-  const showErrorToast = useCallback(
-    (errors: ValidationError[]) => {
-      const firstError = errors[0]
-      const remainingCount = errors.length - 1
+  const showErrorToast = useCallback((errors: ValidationError[]) => {
+    const firstError = errors[0]
+    const remainingCount = errors.length - 1
+    let message = firstError.message
 
-      const heading = "Validation Error"
-      let subtext = firstError.message
+    if (remainingCount > 0) {
+      message = `${firstError.message} (${remainingCount} more issue${remainingCount > 1 ? "s" : ""} found)`
+    }
 
-      if (remainingCount > 0) {
-        subtext = `${firstError.message} (${remainingCount} more issue${remainingCount > 1 ? "s" : ""} found)`
-      }
-
-      showToast({
-        type: "error",
-        heading,
-        subtext,
-        duration: 6000,
-      })
-    },
-    [showToast],
-  )
+    toast.error("Validation Error", {
+      description: message,
+      duration: 6000,
+    })
+  }, [])
 
   const showSuccessToast = useCallback(() => {
-    showToast({
-      type: "success",
-      heading: "Login Successful",
-      subtext: "Welcome back! You have been authenticated successfully.",
+    toast.success("Login Successful", {
+      description: "Welcome back! You have been authenticated successfully.",
       duration: 4000,
     })
-  }, [showToast])
+  }, [])
 
-const showAuthErrorToast = useCallback(
-  (heading: string, subtext: string) => {
-    showToast({
-      type: "error",
-      heading,
-      subtext,
+  const showAuthErrorToast = useCallback(() => {
+    toast.error("Authentication Failed", {
+      description: "Please check your credentials and try again.",
       duration: 6000,
-    });
-  },
-  [showToast]
-);
+    })
+  }, [])
 
-  // Form submission handler
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-
       const formData = new FormData(e.currentTarget)
       const validationErrors = validateForm(formData)
 
       if (validationErrors.length > 0) {
         showErrorToast(validationErrors)
-        // Focus first invalid field for accessibility
         const firstErrorField = validationErrors[0].field
         if (firstErrorField === "email" && emailRef.current) {
           emailRef.current.focus()
@@ -195,7 +170,6 @@ const showAuthErrorToast = useCallback(
       }
 
       setIsLoading(true)
-
       try {
          const email = formData.get("email") as string
       const password = formData.get("password") as string
@@ -233,11 +207,9 @@ const showAuthErrorToast = useCallback(
     [router, validateForm, showErrorToast, showSuccessToast, showAuthErrorToast],
   )
 
-  // Memoized glass style calculation for performance
   const getGlassStyle = useMemo(() => {
     return (mousePos: MousePosition, isVisible: boolean) => {
       if (!isVisible) return {}
-
       return {
         background: `
           radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${mousePos.y}px, 
@@ -260,7 +232,6 @@ const showAuthErrorToast = useCallback(
     }
   }, [])
 
-  // Password toggle handler
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword((prev) => !prev)
   }, [])
@@ -272,7 +243,6 @@ const showAuthErrorToast = useCallback(
           0%, 100% { text-shadow: 0 0 0px rgba(255,255,255,0); }
           50% { text-shadow: 0 0 20px rgba(255,255,255,0.1); }
         }
-        
         @keyframes subtlePulse {
           0%, 100% { 
             transform: scale(1); 
@@ -283,8 +253,7 @@ const showAuthErrorToast = useCallback(
             opacity: 1; 
           }
         }
-
-        @keyframes appleSlideUp {
+        @keyframes slideUp {
           0% { 
             opacity: 0; 
             transform: translateY(30px) scale(0.95);
@@ -294,8 +263,7 @@ const showAuthErrorToast = useCallback(
             transform: translateY(0) scale(1);
           }
         }
-
-        @keyframes appleSlideUpStaggered {
+        @keyframes slideUpStaggered {
           0% { 
             opacity: 0; 
             transform: translateY(20px);
@@ -305,62 +273,41 @@ const showAuthErrorToast = useCallback(
             transform: translateY(0);
           }
         }
-
-        @keyframes smoothButtonBounce {
-          0% { transform: scale(1); }
-          50% { transform: scale(0.96); }
-          100% { transform: scale(1); }
-        }
-
-        @keyframes appleGentleBounce {
+        @keyframes gentleBounce {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-2px); }
         }
-
-        .animate-apple-fade {
-          animation: appleSlideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .animate-fade-in {
+          animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-
-        .animate-apple-stagger-1 {
-          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+        .animate-stagger-1 {
+          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
         }
-
-        .animate-apple-stagger-2 {
-          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        .animate-stagger-2 {
+          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
         }
-
-        .animate-apple-stagger-3 {
-          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+        .animate-stagger-3 {
+          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
         }
-
-        .animate-apple-stagger-4 {
-          animation: appleSlideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+        .animate-stagger-4 {
+          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
         }
-
-        .smooth-button-bounce:active:not(:disabled) {
-          animation: smoothButtonBounce 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .apple-hover-lift:hover {
+        .hover-lift:hover {
           transform: translateY(-1px);
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        .apple-gentle-bounce {
-          animation: appleGentleBounce 3s ease-in-out infinite;
+        .gentle-bounce {
+          animation: gentleBounce 3s ease-in-out infinite;
         }
-
-        .apple-smooth {
+        .smooth-transition {
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         /* Remove all focus outlines */
         .no-outline:focus,
         .no-outline:focus-visible {
           outline: none !important;
           box-shadow: none !important;
         }
-
         /* Remove browser default focus styles */
         input:focus,
         button:focus,
@@ -371,32 +318,25 @@ const showAuthErrorToast = useCallback(
           outline: none !important;
           box-shadow: none !important;
         }
-
         @media (prefers-reduced-motion: reduce) {
-          .animate-apple-fade,
-          .animate-apple-stagger-1,
-          .animate-apple-stagger-2,
-          .animate-apple-stagger-3,
-          .animate-apple-stagger-4,
-          .apple-gentle-bounce {
+          .animate-fade-in,
+          .animate-stagger-1,
+          .animate-stagger-2,
+          .animate-stagger-3,
+          .animate-stagger-4,
+          .gentle-bounce {
             animation: none;
             opacity: 1;
             transform: none;
           }
-          
-          .apple-smooth,
-          .apple-hover-lift:hover {
+          .smooth-transition,
+          .hover-lift:hover {
             transition: none;
-          }
-          
-          .smooth-button-bounce:active:not(:disabled) {
-            animation: none;
           }
         }
       `}</style>
-
       <div className={cn("flex flex-col gap-8 sm:gap-12 w-full max-w-lg mx-auto", className)} {...props}>
-        <header className="text-center animate-apple-stagger-1">
+        <header className="text-center animate-stagger-1">
           <h1
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-light tracking-normal relative"
             style={{
@@ -405,9 +345,9 @@ const showAuthErrorToast = useCallback(
           >
             Login to your Certara
             <span
-              className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1 apple-gentle-bounce"
+              className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1"
               style={{
-                animation: "subtlePulse 4s ease-in-out infinite, appleGentleBounce 3s ease-in-out infinite",
+                animation: "subtlePulse 4s ease-in-out infinite",
               }}
               aria-hidden="true"
             />
@@ -417,11 +357,11 @@ const showAuthErrorToast = useCallback(
 
         <main
           ref={containerRef}
-          className="relative rounded-xl p-8 sm:p-10 overflow-visible border border-white/20 apple-smooth backdrop-blur-sm animate-apple-fade apple-hover-lift"
+          className="relative rounded-xl p-8 sm:p-10 overflow-visible border border-white/20 smooth-transition backdrop-blur-sm animate-fade-in hover-lift"
         >
           {isHovering && (
             <div
-              className="absolute inset-0 rounded-xl pointer-events-none apple-smooth"
+              className="absolute inset-0 rounded-xl pointer-events-none smooth-transition"
               style={getGlassStyle(mousePosition, isHovering)}
               aria-hidden="true"
             />
@@ -434,8 +374,8 @@ const showAuthErrorToast = useCallback(
             >
               <legend className="sr-only">Login credentials</legend>
 
-              <div className="grid gap-4 animate-apple-stagger-2">
-                <Label htmlFor="email" className="text-white text-sm font-medium apple-smooth">
+              <div className="grid gap-4 animate-stagger-2">
+                <Label htmlFor="email" className="text-white text-sm font-medium smooth-transition">
                   Enter Your Email Address
                 </Label>
                 <div className="relative">
@@ -447,11 +387,11 @@ const showAuthErrorToast = useCallback(
                     autoComplete="email"
                     required
                     aria-describedby="email-description"
-                    className="bg-transparent border border-white/20 focus:border-white/40 apple-smooth rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
+                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
                   />
                   {isEmailHovering && (
                     <div
-                      className="absolute inset-0 rounded-lg pointer-events-none apple-smooth"
+                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
                       style={getGlassStyle(emailMousePosition, isEmailHovering)}
                       aria-hidden="true"
                     />
@@ -462,8 +402,8 @@ const showAuthErrorToast = useCallback(
                 </div>
               </div>
 
-              <div className="grid gap-4 animate-apple-stagger-3">
-                <Label htmlFor="password" className="text-white text-sm font-medium apple-smooth">
+              <div className="grid gap-4 animate-stagger-3">
+                <Label htmlFor="password" className="text-white text-sm font-medium smooth-transition">
                   Enter Your Password
                   <span className="pl-40 text-gray-300 hover:text-gray-400 transition-colors duration-300">
                     Forgot Password?
@@ -477,11 +417,11 @@ const showAuthErrorToast = useCallback(
                     autoComplete="current-password"
                     required
                     aria-describedby="password-description"
-                    className="bg-transparent border border-white/20 focus:border-white/40 apple-smooth rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
+                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
                   />
                   {isPasswordHovering && (
                     <div
-                      className="absolute inset-0 rounded-lg pointer-events-none apple-smooth"
+                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
                       style={getGlassStyle(passwordMousePosition, isPasswordHovering)}
                       aria-hidden="true"
                     />
@@ -491,12 +431,12 @@ const showAuthErrorToast = useCallback(
                     onClick={togglePasswordVisibility}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     aria-pressed={showPassword}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white apple-smooth hover:scale-110 z-20 no-outline rounded p-1 smooth-button-bounce"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white hover:scale-110 z-20 no-outline rounded p-1"
                   >
                     {showPassword ? (
-                      <Eye className="h-5 w-5 apple-smooth" aria-hidden="true" />
+                      <Eye className="h-5 w-5" aria-hidden="true" />
                     ) : (
-                      <EyeOff className="h-5 w-5 apple-smooth" aria-hidden="true" />
+                      <EyeOff className="h-5 w-5" aria-hidden="true" />
                     )}
                   </button>
                 </div>
@@ -505,28 +445,29 @@ const showAuthErrorToast = useCallback(
                 </div>
               </div>
 
-              <div className="flex gap-4 animate-apple-stagger-4">
+              <div className="flex gap-4 animate-stagger-4">
                 <Button
                   ref={cancelRef}
                   type="button"
                   variant="outline"
                   disabled={isLoading}
-                  className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg apple-smooth rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 smooth-button-bounce apple-hover-lift"
+                  onClick={() => (window.location.href = "/")}
+                  className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
                 >
                   {isCancelHovering && !isLoading && (
                     <div
-                      className="absolute inset-0 rounded-lg pointer-events-none apple-smooth"
+                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
                       style={getGlassStyle(cancelMousePosition, isCancelHovering)}
                       aria-hidden="true"
                     />
                   )}
-                  <span className="relative z-10">Cancel</span>
+                  <span className="relative z-10 flex-row">Cancel</span>
                 </Button>
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-white text-black hover:bg-white/90 apple-smooth rounded-lg h-12 font-medium no-outline disabled:opacity-50 disabled:cursor-not-allowed smooth-button-bounce apple-hover-lift"
+                  className="flex-1 bg-white text-black hover:bg-white/90 smooth-transition rounded-lg h-12 font-medium no-outline disabled:opacity-50 disabled:cursor-not-allowed smooth-button-bounce hover-lift"
                 >
                   {isLoading ? (
                     <>
@@ -540,27 +481,28 @@ const showAuthErrorToast = useCallback(
                 </Button>
               </div>
             </fieldset>
+            <div className="pt-5"></div>
           </form>
           <div className="pt-4"></div>
         </main>
 
-        <footer className="text-center text-xs text-white/40 space-y-2 animate-apple-stagger-4">
+        <footer className="text-center text-xs text-white/40 space-y-2 animate-stagger-4">
           <p>© 2025 Certera. All rights reserved.</p>
           <nav aria-label="Footer navigation">
             <div className="flex justify-center gap-4 flex-wrap">
-              <a href="#" className="hover:text-white/60 apple-smooth no-outline rounded apple-hover-lift">
+              <a href="#" className="hover:text-white/60 smooth-transition no-outline rounded hover-lift">
                 Privacy Policy
               </a>
               <span className="hidden sm:inline" aria-hidden="true">
                 •
               </span>
-              <a href="#" className="hover:text-white/60 apple-smooth no-outline rounded apple-hover-lift">
+              <a href="#" className="hover:text-white/60 smooth-transition no-outline rounded hover-lift">
                 Terms of Service
               </a>
               <span className="hidden sm:inline" aria-hidden="true">
                 •
               </span>
-              <a href="#" className="hover:text-white/60 apple-smooth no-outline rounded apple-hover-lift">
+              <a href="#" className="hover:text-white/60 smooth-transition no-outline rounded hover-lift">
                 Support
               </a>
             </div>
