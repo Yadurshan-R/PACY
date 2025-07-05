@@ -188,11 +188,16 @@ const showAuthErrorToast = useCallback(
       if (res.ok && data.isAdmin) {
         showSuccessToast()
         console.log("Login as Admin successful ")
-        setTimeout(() => {router.push(data.redirect); }, 1500);
+        setTimeout(() => {router.push(data.redirect); }, 500);
+      }
+      else if(res.ok && data.flag) {
+        showSuccessToast()
+        console.log("Login successful ")
+        setTimeout(() => {router.push("/changePassword"); }, 500);
       }
       else if(res.ok) {
       showSuccessToast()
-      console.log("Login as Admin successful ")
+      console.log("Login successful ")
       router.push("/home");
       }
       else {

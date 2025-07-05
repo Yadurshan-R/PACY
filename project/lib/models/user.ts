@@ -8,6 +8,7 @@ export interface IUser extends Document {
   contactNo: string;
   email: string;
   password: string;
+  flagFirstLogin: boolean;
   logo: string;  
 }
 
@@ -19,7 +20,8 @@ const userSchema = new Schema<IUser>({
   contactNo: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  logo: { type: String }
+  flagFirstLogin: { type: Boolean },
+  logo: { type: String, required: true }
 });
 
 

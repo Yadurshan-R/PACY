@@ -9,7 +9,6 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 export async function POST(req: Request) {
   try {
-    console.log("User fetch started");
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -36,7 +35,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ heading: "Authentication Failed", message: "The password you entered is incorrect." }, { status: 401 });
     }
 
-    return NextResponse.json({ message: "Login successful", userID: user.id }, { status: 200 });
+    return NextResponse.json({ message: "Login successful", userID: user.id, flag: user.flagFirstLogin }, { status: 200 });
 
   } catch (err) {
     console.error("Login error:", err);

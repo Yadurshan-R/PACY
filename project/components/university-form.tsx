@@ -84,32 +84,28 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   // Fetch universities from API
-  useEffect(() => {
-    const fetchUniversities = async () => {
-      setLoadingUniversities(true)
-      try {
-        const response = await fetch("/api/universities")
-        const data = await response.json()
-        setUniversities(data.universities)
-      } catch (error) {
-        console.error("Failed to fetch universities:", error)
-        toast.error("Failed to load universities", {
-          description: "Could not load the list of universities. Please try again.",
-          duration: 4000,
-        })
-      } finally {
-        setLoadingUniversities(false)
-      }
-    }
-
-    fetchUniversities()
-  }, [])
+const fetchUniversities = useCallback(async () => {
+  setLoadingUniversities(true)
+  try {
+    const response = await fetch("/api/auth/admin/universities")
+    const data = await response.json()
+    setUniversities(data.universities)
+  } catch (error) {
+    console.error("Failed to fetch universities:", error)
+    toast.error("Failed to load universities", {
+      description: "Could not load the list of universities. Please try again.",
+      duration: 4000,
+    })
+  } finally {
+    setLoadingUniversities(false)
+  }
+}, [])
 
   useEffect(() => {
     const fetchCities = async () => {
       setLoadingCities(true)
       try {
-        const response = await fetch("/api/cities")
+        const response = await fetch("/api/auth/admin/cities")
         const data = await response.json()
         setCities(data.cities)
       } catch (error) {
@@ -279,6 +275,7 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
 
   const handleViewUsers = useCallback(() => {
     setShowUsers(true)
+    fetchUniversities();
   }, [])
 
   const handleBackToForm = useCallback(() => {
@@ -300,27 +297,23 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
       setIsLoading(true)
       try {
         const universityData = {
-          universityName: formData.universityName,
+          orgName: formData.universityName,
           location: formData.location,
           email: formData.email,
-          contactNumber: formData.contactNumber,
+          contactNo: formData.contactNumber,
           logo: logoBase64 || null,
         }
 
-        const response = await fetch("/api/universities", {
+        const response = await fetch("/api/auth/admin/signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(universityData),
         })
-
-        if (response.ok) {
-          const result = await response.json()
-
-          setUniversities((prev) => [...prev, result.university])
-
-          console.log("University data:", result.university)
+        const result = await response.json()
+        if (result.ok) {
+          console.log("Organization Added Successfully.")
           showSuccessToast()
 
           setFormData({
@@ -334,10 +327,13 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
           setCurrentStep(1)
 
           setTimeout(() => {
-            window.location.href = "/dashboard"
+            
           }, 1500)
         } else {
-          throw new Error("Failed to create university")
+          toast.error(result.heading, {
+            description : result.message,
+            duration: 6000,
+          })
         }
       } catch (error) {
         toast.error("Setup Failed", {
