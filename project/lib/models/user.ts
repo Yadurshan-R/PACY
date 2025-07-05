@@ -1,29 +1,30 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
+
 export interface IUser extends Document {
   id: string;
-  firstName: string;
-  lastName: string;
-  phoneNo: string;
+  orgName: string;
+  location: string;
+  contactNo: string;
   email: string;
-  password: string;                 // <-- add this
-  verificationCode: number;
-  verificationCodeExpiresAt?: Date;
+  password: string;
+  flagFirstLogin: boolean;
+  logo: string;  
 }
+
 
 const userSchema = new Schema<IUser>({
   id: { type: String, required: true },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  phoneNo: { type: String, required: true, unique: true },
+  orgName: { type: String, required: true },
+  location: { type: String, required: true, unique: true },
+  contactNo: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },   // <-- add this
-  verificationCode: { type: Number, default: 0 },  // keep this if needed separately
-  verificationCodeExpiresAt: { type: Date }
+  password: { type: String, required: true },
+  flagFirstLogin: { type: Boolean },
+  logo: { type: String, required: true }
 });
 
 
-// 3️⃣ Export the model with proper typing
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 
 export default User;
