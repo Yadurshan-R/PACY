@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 interface MousePosition {
   x: number;
@@ -21,12 +20,13 @@ interface ValidationError {
   message: string;
 }
 
-export function LoginForm({
+export function ChangePasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mousePosition, setMousePosition] = useState<MousePosition>({
     x: 0,
@@ -37,19 +37,18 @@ export function LoginForm({
     { x: 0, y: 0 }
   );
   const [isCancelHovering, setIsCancelHovering] = useState(false);
-  const [emailMousePosition, setEmailMousePosition] = useState<MousePosition>({
-    x: 0,
-    y: 0,
-  });
-  const [isEmailHovering, setIsEmailHovering] = useState(false);
-  const [passwordMousePosition, setPasswordMousePosition] =
+  const [newPasswordMousePosition, setNewPasswordMousePosition] =
     useState<MousePosition>({ x: 0, y: 0 });
-  const [isPasswordHovering, setIsPasswordHovering] = useState(false);
+  const [isNewPasswordHovering, setIsNewPasswordHovering] = useState(false);
+  const [confirmPasswordMousePosition, setConfirmPasswordMousePosition] =
+    useState<MousePosition>({ x: 0, y: 0 });
+  const [isConfirmPasswordHovering, setIsConfirmPasswordHovering] =
+    useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLDivElement>(null);
+  const newPasswordRef = useRef<HTMLDivElement>(null);
+  const confirmPasswordRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = useCallback(
     (
@@ -72,8 +71,8 @@ export function LoginForm({
     const elements = {
       container: containerRef.current,
       cancel: cancelRef.current,
-      email: emailRef.current,
-      password: passwordRef.current,
+      newPassword: newPasswordRef.current,
+      confirmPassword: confirmPasswordRef.current,
     };
 
     const handlers = {
@@ -89,17 +88,21 @@ export function LoginForm({
         mouseenter: () => setIsCancelHovering(true),
         mouseleave: () => setIsCancelHovering(false),
       },
-      email: {
+      newPassword: {
         mousemove: (e: MouseEvent) =>
-          handleMouseMove(e, setEmailMousePosition, emailRef),
-        mouseenter: () => setIsEmailHovering(true),
-        mouseleave: () => setIsEmailHovering(false),
+          handleMouseMove(e, setNewPasswordMousePosition, newPasswordRef),
+        mouseenter: () => setIsNewPasswordHovering(true),
+        mouseleave: () => setIsNewPasswordHovering(false),
       },
-      password: {
+      confirmPassword: {
         mousemove: (e: MouseEvent) =>
-          handleMouseMove(e, setPasswordMousePosition, passwordRef),
-        mouseenter: () => setIsPasswordHovering(true),
-        mouseleave: () => setIsPasswordHovering(false),
+          handleMouseMove(
+            e,
+            setConfirmPasswordMousePosition,
+            confirmPasswordRef
+          ),
+        mouseenter: () => setIsConfirmPasswordHovering(true),
+        mouseleave: () => setIsConfirmPasswordHovering(false),
       },
     };
 
@@ -127,22 +130,36 @@ export function LoginForm({
   }, [handleMouseMove]);
 
   const validateForm = useCallback((formData: FormData): ValidationError[] => {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
     const errors: ValidationError[] = [];
 
-    if (!email?.trim()) {
-      errors.push({ field: "email", message: "Email address is required" });
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push({ field: "email", message: "Invalid email address format" });
+    if (!newPassword?.trim()) {
+      errors.push({
+        field: "newPassword",
+        message: "New password is required",
+      });
+    } else if (newPassword.length < 8) {
+      errors.push({
+        field: "newPassword",
+        message: "Password must be at least 8 characters",
+      });
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      errors.push({
+        field: "newPassword",
+        message: "Password must contain uppercase, lowercase, and number",
+      });
     }
 
-    if (!password?.trim()) {
-      errors.push({ field: "password", message: "Password is required" });
-    } else if (password.length < 6) {
+    if (!confirmPassword?.trim()) {
       errors.push({
-        field: "password",
-        message: "Password must be at least 6 characters",
+        field: "confirmPassword",
+        message: "Please confirm your password",
+      });
+    } else if (newPassword !== confirmPassword) {
+      errors.push({
+        field: "confirmPassword",
+        message: "Passwords do not match",
       });
     }
 
@@ -167,8 +184,8 @@ export function LoginForm({
   }, []);
 
   const showSuccessToast = useCallback(() => {
-    toast.success("Login Successful", {
-      description: "Welcome back! You have been authenticated successfully.",
+    toast.success("Password Reset Successful", {
+      description: "Your password has been updated successfully.",
       duration: 4000,
     });
   }, []);
@@ -192,14 +209,21 @@ export function LoginForm({
       if (validationErrors.length > 0) {
         showErrorToast(validationErrors);
         const firstErrorField = validationErrors[0].field;
-        if (firstErrorField === "email" && emailRef.current) {
-          emailRef.current.focus();
-        } else if (
-          firstErrorField === "password" &&
-          passwordRef.current?.querySelector("input")
+        if (
+          firstErrorField === "newPassword" &&
+          newPasswordRef.current?.querySelector("input")
         ) {
           (
-            passwordRef.current.querySelector("input") as HTMLInputElement
+            newPasswordRef.current.querySelector("input") as HTMLInputElement
+          ).focus();
+        } else if (
+          firstErrorField === "confirmPassword" &&
+          confirmPasswordRef.current?.querySelector("input")
+        ) {
+          (
+            confirmPasswordRef.current.querySelector(
+              "input"
+            ) as HTMLInputElement
           ).focus();
         }
         return;
@@ -207,71 +231,41 @@ export function LoginForm({
 
       setIsLoading(true);
       try {
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          console.error("User ID not found in localStorage!");
+          throw new Error("User ID not found.")
+        }
+        const newPassword = formData.get("confirmPassword") as string;
 
-        const res = await fetch("/api/auth/sign-in", {
+        const res = await fetch("/api/auth/sign-in/changePassword", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ userId, newPassword }),
         });
 
         const data = await res.json();
 
-        if (res.ok && data.isAdmin) {
+        if (res.ok) {
           showSuccessToast();
-          console.log("Login as Admin successful ");
-          router.push(data.redirect);
-        } else if (res.ok && data.flag) {
-          showSuccessToast();
-          localStorage.setItem("userId", data.userID);
-          console.log("Login successful ");
-          router.push("/sign-in/change-password");
-        } else if (res.ok) {
-          showSuccessToast();
-          localStorage.setItem("userId", data.userID);
-          console.log("Login successful ");
-          router.push("/home");
+          console.log("Password reset successful");
+          router.push("/sign-in");
         } else {
           showAuthErrorToast(data.heading, data.message);
-          console.error("Login failed:", data.message);
+          console.error("Password reset failed:", data.message);
         }
       } catch (error) {
         showAuthErrorToast(
           "Internal Server Error",
           "An unexpected error occurred. Please try again later."
         );
-        console.error("Login failed:", error);
+        console.error("Password reset failed:", error);
       } finally {
         setIsLoading(false);
       }
     },
     [router, validateForm, showErrorToast, showSuccessToast, showAuthErrorToast]
   );
-
-  const handleForgotPassword = () => {
-    // Optional validation logic before redirecting
-    console.log("Forgot Password clicked");
-
-    // Example: Check if the email field has a value
-    const emailValue = emailRef.current?.value;
-    if (!emailValue) {
-      toast.error("Missing Email", {
-        description:
-          "Please enter your email so we can help you reset your password.",
-      });
-      if (emailRef.current) {
-        emailRef.current.focus();
-      }
-      return;
-    }
-
-    // Optionally, store the email for pre-filling on the reset page
-    localStorage.setItem("resetEmail", emailValue);
-
-    // Redirect to forgot password page
-    router.push("/sign-in/forgot-password");
-  };
 
   const getGlassStyle = useMemo(() => {
     return (mousePos: MousePosition, isVisible: boolean) => {
@@ -283,7 +277,7 @@ export function LoginForm({
         }px, 
             rgba(255,255,255,0.18) 0%, 
             rgba(255,255,255,0.08) 30%, 
-            rgba(255,255,255,0.04) 50%,
+            rgba(255,255,255,0.04) 50%, 
             transparent 70%),
           radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${
           mousePos.y - 10
@@ -302,8 +296,12 @@ export function LoginForm({
     };
   }, []);
 
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword((prev) => !prev);
+  const toggleNewPasswordVisibility = useCallback(() => {
+    setShowNewPassword((prev) => !prev);
+  }, []);
+
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    setShowConfirmPassword((prev) => !prev);
   }, []);
 
   return (
@@ -434,9 +432,9 @@ export function LoginForm({
               animation: "textGlow 6s ease-in-out infinite",
             }}
           >
-            Sign in to your Certara
+            Set your new Certara
             <span className="block pl-1">
-              account
+              password
               <span
                 className="inline-block w-1 h-1 bg-white rounded-full ml-0.5"
                 style={{
@@ -465,91 +463,106 @@ export function LoginForm({
               disabled={isLoading}
               className="flex flex-col gap-8 disabled:opacity-75 disabled:pointer-events-none"
             >
-              <legend className="sr-only">Login credentials</legend>
+              <legend className="sr-only">Reset password credentials</legend>
 
               <div className="grid gap-4 animate-stagger-2">
                 <Label
-                  htmlFor="email"
+                  htmlFor="newPassword"
                   className="text-white text-sm font-medium smooth-transition"
                 >
-                  Enter Your Email Address
+                  Enter New Password
                 </Label>
-                <div className="relative">
+                <div ref={newPasswordRef} className="relative">
                   <Input
-                    ref={emailRef}
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
+                    id="newPassword"
+                    name="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     required
-                    aria-describedby="email-description"
-                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
-                  />
-                  {isEmailHovering && (
-                    <div
-                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(emailMousePosition, isEmailHovering)}
-                      aria-hidden="true"
-                    />
-                  )}
-                </div>
-                <div id="email-description" className="sr-only">
-                  Enter your registered email address
-                </div>
-              </div>
-
-              <div className="grid gap-4 animate-stagger-3">
-                <Label
-                  htmlFor="password"
-                  className="text-white text-sm font-medium smooth-transition"
-                >
-                  Enter Your Password
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="pl-40 text-gray-300 hover:text-gray-400 transition-colors duration-300 underline underline-offset-2 focus:outline-none"
-                  >
-                    Forgot Password?
-                  </button>
-                </Label>
-                <div ref={passwordRef} className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    required
-                    aria-describedby="password-description"
+                    aria-describedby="new-password-description"
                     className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
                   />
-                  {isPasswordHovering && (
+                  {isNewPasswordHovering && (
                     <div
                       className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
                       style={getGlassStyle(
-                        passwordMousePosition,
-                        isPasswordHovering
+                        newPasswordMousePosition,
+                        isNewPasswordHovering
                       )}
                       aria-hidden="true"
                     />
                   )}
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
+                    onClick={toggleNewPasswordVisibility}
                     aria-label={
-                      showPassword ? "Hide password" : "Show password"
+                      showNewPassword
+                        ? "Hide new password"
+                        : "Show new password"
                     }
-                    aria-pressed={showPassword}
+                    aria-pressed={showNewPassword}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white hover:scale-110 z-20 no-outline rounded p-1"
                   >
-                    {showPassword ? (
+                    {showNewPassword ? (
                       <Eye className="h-5 w-5" aria-hidden="true" />
                     ) : (
                       <EyeOff className="h-5 w-5" aria-hidden="true" />
                     )}
                   </button>
                 </div>
-                <div id="password-description" className="sr-only">
-                  Enter your account password. Minimum 6 characters required.
+                <div id="new-password-description" className="sr-only">
+                  Enter your new password. Must be at least 8 characters with
+                  uppercase, lowercase, and number.
+                </div>
+              </div>
+
+              <div className="grid gap-4 animate-stagger-3">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-white text-sm font-medium smooth-transition"
+                >
+                  Confirm New Password
+                </Label>
+                <div ref={confirmPasswordRef} className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    aria-describedby="confirm-password-description"
+                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
+                  />
+                  {isConfirmPasswordHovering && (
+                    <div
+                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
+                      style={getGlassStyle(
+                        confirmPasswordMousePosition,
+                        isConfirmPasswordHovering
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    aria-label={
+                      showConfirmPassword
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                    aria-pressed={showConfirmPassword}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white hover:scale-110 z-20 no-outline rounded p-1"
+                  >
+                    {showConfirmPassword ? (
+                      <Eye className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      <EyeOff className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+                <div id="confirm-password-description" className="sr-only">
+                  Re-enter your new password to confirm it matches.
                 </div>
               </div>
 
@@ -559,7 +572,7 @@ export function LoginForm({
                   type="button"
                   variant="outline"
                   disabled={isLoading}
-                  onClick={() => (window.location.href = "/")}
+                  onClick={() => (window.location.href = "/sign-in")}
                   className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
                 >
                   {isCancelHovering && !isLoading && (
@@ -586,13 +599,13 @@ export function LoginForm({
                         className="mr-2 h-4 w-4 animate-spin"
                         aria-hidden="true"
                       />
-                      <span>Signing in...</span>
+                      <span>Resetting...</span>
                       <span className="sr-only">
-                        Please wait while we authenticate your credentials
+                        Please wait while we reset your password
                       </span>
                     </>
                   ) : (
-                    "Sign In"
+                    "Reset Password"
                   )}
                 </Button>
               </div>
