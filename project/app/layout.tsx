@@ -3,6 +3,9 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "sonner"
+import { ThemeProvider } from "@/components/theme-provider";
+import MeshProviderWrapper from '@/components/MeshProviderWrapper';
+
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -19,7 +22,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+          <MeshProviderWrapper>
+            {children}
+          </MeshProviderWrapper>
+        </ThemeProvider>
         <Toaster
           theme="dark"
           position="top-right"

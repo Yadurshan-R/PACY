@@ -126,7 +126,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch('/api/template')
+    fetch(`/api/${localStorage.getItem("userId")}/template`)
       .then((res) => res.json())
       .then((data) => {
         const names = data.map((t: any) => t.degreeName);
@@ -173,7 +173,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
 const loadTemplate = async () => {
   setIsLoading(true);
   try {
-    const res = await fetch(`/api/template/${encodeURIComponent(selectedDegree)}`);
+    const res = await fetch(`/api/${localStorage.getItem("userId")}/template/${encodeURIComponent(selectedDegree)}`);
     if (!res.ok) {
       throw new Error('Template not found');
     }

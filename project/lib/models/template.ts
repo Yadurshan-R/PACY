@@ -18,6 +18,7 @@ const TemplateSchema = new mongoose.Schema({
   backgroundImage: String,
   originalWidth: Number,
   originalHeight: Number,
+  userId: String,
   createdAt: { type: Date, default: Date.now },
 });
 

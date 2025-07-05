@@ -173,14 +173,14 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
 
     const backgroundImage = template;
     try {
-      await fetch('/api/template', {
+      await fetch(`/api/${localStorage.getItem("userId")}/template`, {
         method: 'POST',
         body: JSON.stringify({
           degreeName,
           elements,
           backgroundImage,
           originalWidth: originalSize.width,
-          originalHeight: originalSize.height
+          originalHeight: originalSize.height,
         }),
         headers: { 'Content-Type': 'application/json' },
       });
