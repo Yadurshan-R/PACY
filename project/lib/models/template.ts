@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const ElementSchema = new mongoose.Schema({
   id: String,
   type: String,
-  text: String,
+  content: String,
   left: Number,
   top: Number,
   fontSize: Number,
@@ -16,6 +16,8 @@ const TemplateSchema = new mongoose.Schema({
   degreeName: { type: String, required: true, unique: true },
   elements: [ElementSchema],
   backgroundImage: String,
+  originalWidth: Number,
+  originalHeight: Number,
   createdAt: { type: Date, default: Date.now },
 });
 

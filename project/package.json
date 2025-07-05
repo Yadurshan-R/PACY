@@ -9,12 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@meshsdk/core": "^1.9.0-beta.61",
+    "@meshsdk/react": "^1.9.0-beta.61",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "html-to-image": "^1.11.13",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.523.0",
     "mongoose": "^8.16.0",
     "next": "15.3.4",
