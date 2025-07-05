@@ -6,12 +6,8 @@ import { useEffect, useState } from 'react';
 type Certificate = {
   name: string;
   description: string;
-  extra: {
-    course: string;
-    issued: string;
-  };
-  image: string;
-  mediaType: string;
+  degree: string,
+  issued: string,
 };
 
 export default function CertificatePage({ params }: { params: Promise<{ txHash: string }> }) {
@@ -28,45 +24,14 @@ export default function CertificatePage({ params }: { params: Promise<{ txHash: 
     async function fetchTxMetadata() {
       setLoading(true);
       try {
-        const res = await fetch(
-          `https://cardano-preprod.blockfrost.io/api/v0/txs/${txHash}/metadata`,
-          {
-            headers: {
-              project_id: process.env.NEXT_PUBLIC_BLOCKFROST_PROJECT_ID!,
-            },
-          }
-        );
+        const res = await fetch(`/api/metadata/${txHash}`);
+        const { certificate, error } = await res.json();
 
-        if (!res.ok) {
-          throw new Error(`Blockfrost API error: ${res.status} ${res.statusText}`);
+        if (!res.ok || error) {
+          throw new Error(error || 'Unknown error fetching certificate');
         }
 
-        const data = await res.json();
-        const metadata721 = data.find((item: any) => item.label === '721');
-        if (!metadata721) {
-          setError('No CIP-721 metadata found.');
-          return;
-        }
-
-        const jsonMetadata = metadata721.json_metadata;
-        const policyIds = Object.keys(jsonMetadata);
-        if (policyIds.length === 0) {
-          setError('No policy IDs found in metadata.');
-          return;
-        }
-
-        const policyId = policyIds[0];
-        const assets = jsonMetadata[policyId];
-        const assetNames = Object.keys(assets);
-        if (assetNames.length === 0) {
-          setError('No assets found in metadata.');
-          return;
-        }
-
-        const assetName = assetNames[0];
-        const certData: Certificate = assets[assetName];
-
-        setCertificate(certData);
+        setCertificate(certificate);
         setError(null);
       } catch (err: any) {
         setError('Failed to fetch minted assets: ' + err.message);
@@ -77,6 +42,7 @@ export default function CertificatePage({ params }: { params: Promise<{ txHash: 
 
     fetchTxMetadata();
   }, [txHash, tab]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -180,12 +146,12 @@ export default function CertificatePage({ params }: { params: Promise<{ txHash: 
                   <div className="space-y-4">
                     <div className="bg-gray-50 rounded-lg p-4">
                       <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">Course Name</label>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">{certificate.extra.course}</p>
+                      <p className="text-lg font-semibold text-gray-900 mt-1">{certificate.degree}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-lg p-4">
                       <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">Issue Date</label>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">{certificate.extra.issued}</p>
+                      <p className="text-lg font-semibold text-gray-900 mt-1">{certificate.issued}</p>
                     </div>
                     
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">

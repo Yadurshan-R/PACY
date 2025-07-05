@@ -3,9 +3,14 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { FabricJSCanvas, useFabricJSEditor } from 'fabricjs-react';
 import * as fabric from 'fabric';
-import { Download, ArrowLeft, RotateCcw, Eye, Palette, ChevronDown } from 'lucide-react';
+import { Download, ArrowLeft, RotateCcw, Eye, Palette, ChevronDown, Send, QrCode } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { useDropzone } from 'react-dropzone';
+import { mintCertificate } from '@/lib/mintCertificate';
+import { buildCertificateMetadata } from '@/utils/metadataBuilder';
+import { useWallet } from '@meshsdk/react';
+import QRCode from 'react-qr-code';
+import { createRoot } from 'react-dom/client';
 
 interface MousePosition {
   x: number;
@@ -46,6 +51,11 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   const [showInputDropdown, setShowInputDropdown] = useState(false);
   const [customInputValue, setCustomInputValue] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
+  const [qrCodePlaced, setQrCodePlaced] = useState(false);
+  const { wallet, connected } = useWallet();
 
   // Glass effect states
   const [selectorMousePosition, setSelectorMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
@@ -54,6 +64,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   const [isLoadButtonHovering, setIsLoadButtonHovering] = useState(false);
   const [canvasMousePosition, setCanvasMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
   const [isCanvasHovering, setIsCanvasHovering] = useState(false);
+  const [exported, setExported] = useState(false);
 
   // Refs
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -78,20 +89,20 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   );
 
   useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-      setShowInputDropdown(false);
-      if (activeTextObject) {
-        activeTextObject.exitEditing();
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowInputDropdown(false);
+        if (activeTextObject) {
+          activeTextObject.exitEditing();
+        }
       }
-    }
-  };
+    };
 
-  document.addEventListener('mousedown', handleClickOutside);
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, [activeTextObject]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeTextObject]);
 
   const getGlassStyle = useMemo(() => {
     return (mousePos: MousePosition, isVisible: boolean) => {
@@ -158,7 +169,6 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
     }));
     setShowForm(true);
   };
-
 
 const loadTemplate = async () => {
   setIsLoading(true);
@@ -271,11 +281,6 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
       const scaleY = MAX_DISPLAY_HEIGHT / naturalHeight;
 
       const isWidthConstrained = scaleX < scaleY;
-      console.log("dcscsccsdcd",scaleX, scaleY);
-      if(isWidthConstrained){
-        console.log("vvdsvvsvsvsd");
-      }
-
       let displayScale = Math.min(scaleX, scaleY, 1);
 
       const displayWidth = naturalWidth * displayScale;
@@ -352,8 +357,141 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
     imgElement.src = template;
   }, [template, editor, elements, originalSize]);
 
+  const handleSubmitToBlockchain = async () => {
+    if (!connected || !wallet) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const metadata = buildCertificateMetadata(
+        formData.username,
+        formData.degree,
+        formData.dateIssued
+      );
+      
+      const { txHash } = await mintCertificate(
+        wallet,
+        metadata,
+        formData.username,
+        formData.degree,
+        formData.dateIssued
+      );
+      
+      setTxHash(txHash);
+      setShowQRCodeModal(true);
+    } catch (error) {
+      console.error('Error minting certificate:', error);
+      alert('Failed to mint certificate: ' + (error instanceof Error ? error.message : String(error)));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const placeQRCodeOnCanvas = async () => {
+  if (!editor || !editor.canvas || !txHash || !originalSize) return;
+
+  const verificationUrl = `${window.location.origin}/certificate/${txHash}`;
+  
+  // Create a temporary container for QR code rendering
+  const tempDiv = document.createElement('div');
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  document.body.appendChild(tempDiv);
+
+  // Render QR code to the temporary container
+  const root = createRoot(tempDiv);
+  root.render(
+    <div style={{ background: 'white', padding: '8px' }}>
+      <QRCode 
+        value={verificationUrl}
+        size={128}
+        level="H"
+        bgColor="#ffffff"
+        fgColor="#000000"
+      />
+    </div>
+  );
+
+  // Wait for rendering to complete
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  const svgElement = tempDiv.querySelector('svg');
+  if (!svgElement) {
+    root.unmount();
+    document.body.removeChild(tempDiv);
+    return;
+  }
+
+  // Convert SVG to data URL
+  const svgData = new XMLSerializer().serializeToString(svgElement);
+  const svgBlob = new Blob([svgData], {type: 'image/svg+xml'});
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  // Create fabric image using the correct initialization
+  const img = await new Promise<fabric.Image>((resolve, reject) => {
+    const imgElement = new Image();
+    
+    imgElement.onload = () => {
+      // Initialize fabric.Image with the loaded image element
+      const imgInstance = new fabric.Image(imgElement, {
+        crossOrigin: 'anonymous'
+      });
+      resolve(imgInstance);
+    };
+    
+    imgElement.onerror = (err) => {
+      reject(err);
+    };
+    
+    imgElement.src = svgUrl;
+    imgElement.crossOrigin = 'anonymous';
+  });
+
+  // Calculate scaling and position
+  const scaleX = editor.canvas.getWidth() / originalSize.width;
+  const scaleY = editor.canvas.getHeight() / originalSize.height;
+  const scale = Math.min(scaleX, scaleY);
+
+  const centerX = (editor.canvas.getWidth() - (img.width || 0) * 1) / 2;
+  const centerY = (editor.canvas.getHeight() - (img.height || 0) * 1) / 2;
+
+  img.set({
+    left: centerX,
+    top: centerY,
+    scaleX: scale,
+    scaleY: scale,
+    selectable: true,
+    hasControls: true,
+    lockRotation: true,
+    cornerSize: 8,
+    transparentCorners: false,
+    borderColor: 'blue',
+    cornerColor: 'blue',
+    name: 'verification-qr-code',
+    data: { isQRCode: true }
+  });
+
+  img.on('modified', () => {
+    setQrCodePlaced(true);
+  });
+
+  editor.canvas.add(img);
+  editor.canvas.renderAll();
+  setQrCodePlaced(true);
+  setShowQRCodeModal(false);
+
+  // Clean up
+  root.unmount();
+  document.body.removeChild(tempDiv);
+  URL.revokeObjectURL(svgUrl);
+};
   const downloadCanvasAsPDF = () => {
-    if (!editor || !editor.canvas || !originalSize) return;
+    if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
+      alert('Please place the QR code on the certificate before exporting');
+      return;
+    }
 
     const canvas = editor.canvas;
     const { width: naturalWidth, height: naturalHeight } = originalSize;
@@ -400,12 +538,15 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
 
     pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
     pdf.save(`${formData.username.replace(/\s+/g, '_')}_${selectedDegree.replace(/\s+/g, '_')}_certificate.pdf`);
+
+    setExported(true);
+    setTimeout(() => onBack(), 1000); // Redirect to home after 1 second
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await loadTemplate(); // Changed from directly calling downloadCanvasAsPDF
+    await loadTemplate();
 
     try {
       if (editor?.canvas) {
@@ -426,8 +567,6 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
         });
         editor.canvas.renderAll();
       }
-      
-      downloadCanvasAsPDF();
     } catch (error) {
       console.error('Error generating certificate:', error);
     } finally {
@@ -607,6 +746,65 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
         <div className="space-y-4">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
             <h3 className="text-white font-medium mb-2 flex items-center">
+              <Send className="w-4 h-4 mr-2 text-blue-400" />
+              Blockchain Submission
+            </h3>
+            <p className="text-white/60 text-sm mb-3">
+              Submit the certificate details to the blockchain for permanent verification.
+            </p>
+            <button
+              onClick={handleSubmitToBlockchain}
+              disabled={isSubmitting || !connected}
+              className="w-full bg-purple-600/20 backdrop-blur-md text-white px-4 py-3 rounded-lg border border-purple-400/30 hover:bg-purple-600/30 hover:border-purple-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="flex items-center justify-center">
+                <Send className="w-4 h-4 mr-2" />
+                {isSubmitting ? 'Submitting...' : 'Submit to Blockchain'}
+              </div>
+            </button>
+            {txHash && (
+              <div className="mt-3 p-2 bg-emerald-900/20 rounded text-xs text-emerald-200 break-all">
+                <p className="font-medium">Successfully Completed</p>
+              </div>
+            )}
+          </div>
+
+          {/* QR Code Placement Modal */}
+          {showQRCodeModal && (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 className="text-xl font-medium text-white mb-4 flex items-center">
+          <QrCode className="w-5 h-5 mr-2 text-blue-400" />
+          Place Verification QR Code
+        </h3>
+        <p className="text-white/80 mb-4">
+          The QR code will be placed centered on your certificate. You can then drag it to the desired position.
+        </p>
+        
+        <div className="flex justify-center mb-6 p-4 bg-white rounded">
+          <QRCode 
+            value={`${window.location.origin}/certificate/${txHash}`}
+            size={128}
+            level="H"
+            bgColor="#ffffff"
+            fgColor="#000000"
+          />
+        </div>
+
+        <div className="flex space-x-3">
+          <button
+            onClick={placeQRCodeOnCanvas}
+            className="flex-1 bg-blue-600/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          >
+            Place QR Code on Certificate
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+            <h3 className="text-white font-medium mb-2 flex items-center">
               <Eye className="w-4 h-4 mr-2 text-blue-400" />
               Canvas Controls
             </h3>
@@ -614,7 +812,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
               The template is automatically loaded with all elements in their correct positions.
             </p>
           </div>
-
+          {exported && (
           <button
             onClick={() => {
               if (editor?.canvas) {
@@ -633,16 +831,20 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
               Change Template
             </div>
           </button>
+          )}
+
           <button
             onClick={downloadCanvasAsPDF}
-            disabled={isLoading}
-            className="w-full bg-green-600/20 backdrop-blur-md text-white px-4 py-3 rounded-lg border border-green-400/30 hover:bg-green-600/30 hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!qrCodePlaced || isLoading}
+            className={`w-full ${qrCodePlaced ? 'bg-green-600/20 hover:bg-green-600/30 border-green-400/30' : 'bg-gray-600/20 border-gray-400/30'} backdrop-blur-md text-white px-4 py-3 rounded-lg border hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <div className="flex items-center justify-center">
               <Download className="w-4 h-4 mr-2" />
-              {isLoading ? 'Exporting...' : 'Export as PDF'}
+              {qrCodePlaced ? 'Export as PDF' : 'Place QR Code First'}
             </div>
           </button>
+          {exported && (
+
           <button
             onClick={() => setShowForm(true)}
             className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
@@ -652,6 +854,9 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
               Back to Form
             </div>
           </button>
+          )}
+          {exported && (
+
           <button
             onClick={onBack}
             className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
@@ -661,6 +866,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
               Back to Home
             </div>
           </button>
+          )}
         </div>
       </div>
 
@@ -677,50 +883,50 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
           </div>
         </div>
 
-          <div
-            ref={canvasRef}
-            onMouseMove={(e) => handleMouseMove(e.nativeEvent, setCanvasMousePosition, canvasRef)}
-            onMouseEnter={() => setIsCanvasHovering(true)}
-            onMouseLeave={() => setIsCanvasHovering(false)}
-            className="relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg p-4 smooth-transition hover:border-white/30"
+        <div
+          ref={canvasRef}
+          onMouseMove={(e) => handleMouseMove(e.nativeEvent, setCanvasMousePosition, canvasRef)}
+          onMouseEnter={() => setIsCanvasHovering(true)}
+          onMouseLeave={() => setIsCanvasHovering(false)}
+          className="relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg p-4 smooth-transition hover:border-white/30"
+        >
+          {isCanvasHovering && (
+            <div
+              className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
+              style={getGlassStyle(canvasMousePosition, isCanvasHovering)}
+              aria-hidden="true"
+            />
+          )}
+          <div className="relative z-10">
+            <FabricJSCanvas className="canvas rounded-md" onReady={onReady} />
+          </div>
+        </div>
+        {showInputDropdown && activeTextObject && (
+          <div 
+            ref={dropdownRef}
+            className="absolute z-50 bg-slate-800 rounded-lg shadow-lg border border-slate-700 mt-1"
+            style={getDropdownPosition()}
           >
-            {isCanvasHovering && (
-              <div
-                className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                style={getGlassStyle(canvasMousePosition, isCanvasHovering)}
-                aria-hidden="true"
-              />
-            )}
-            <div className="relative z-10">
-              <FabricJSCanvas className="canvas rounded-md" onReady={onReady} />
+            <div 
+              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              onClick={() => handleSelectInput('username')}
+            >
+              {formData.username}
+            </div>
+            <div 
+              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              onClick={() => handleSelectInput('degree')}
+            >
+              {formData.degree}
+            </div>
+            <div 
+              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              onClick={() => handleSelectInput('date')}
+            >
+              {formData.dateIssued}
             </div>
           </div>
-          {showInputDropdown && activeTextObject && (
-      <div 
-        ref={dropdownRef}
-        className="absolute z-50 bg-slate-800 rounded-lg shadow-lg border border-slate-700 mt-1"
-        style={getDropdownPosition()}
-      >
-        <div 
-          className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
-          onClick={() => handleSelectInput('username')}
-        >
-          {formData.username}
-        </div>
-        <div 
-          className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
-          onClick={() => handleSelectInput('degree')}
-        >
-          {formData.degree}
-        </div>
-        <div 
-          className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
-          onClick={() => handleSelectInput('date')}
-        >
-          {formData.dateIssued}
-        </div>
-      </div>
-    )}
+        )}
       </div>
     </div>
   );
