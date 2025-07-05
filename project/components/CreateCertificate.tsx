@@ -27,6 +27,8 @@ type TemplateElement = {
   fill: string;
   editable?: boolean;
   selectable?: boolean;
+  isPlaceholder?: boolean;
+  placeholderType?: 'username' | 'nic' | 'degree' | 'date' | 'custom';
 };
 
 interface CreateCertificateProps {
@@ -44,8 +46,9 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
+    nic: '',
     degree: '',
-    dateIssued: new Date().toISOString().split('T')[0]
+    dateIssued: new Date().toISOString().split('T')[0],
   });
   const [activeTextObject, setActiveTextObject] = useState<fabric.IText | null>(null);
   const [showInputDropdown, setShowInputDropdown] = useState(false);
@@ -183,12 +186,16 @@ const loadTemplate = async () => {
     // Process elements to identify placeholders
     const processedElements = data.elements.map((el: TemplateElement) => {
       let isPlaceholder = false;
-      let placeholderType: 'username' | 'degree' | 'date' | 'custom' | undefined;
+      let placeholderType: 'username' | 'nic' | 'degree' | 'date' | 'custom' | undefined;
       
       if (el.content.includes('{{username}}')) {
         isPlaceholder = true;
         placeholderType = 'username';
         el.content = formData.username;
+      } else if (el.content.includes('{{nic}}')) {
+        isPlaceholder = true;
+        placeholderType = 'nic';
+        el.content = formData.nic;
       } else if (el.content.includes('{{degree}}')) {
         isPlaceholder = true;
         placeholderType = 'degree';
@@ -244,13 +251,16 @@ const getDropdownPosition = useCallback(() => {
   };
 }, [activeTextObject, editor]);
 
-const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', value?: string) => {
+const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custom', value?: string) => {
   if (!activeTextObject || !editor?.canvas) return;
 
   let newText = '';
   switch (type) {
     case 'username':
       newText = formData.username;
+      break;
+    case 'nic':
+      newText = formData.nic;
       break;
     case 'degree':
       newText = formData.degree;
@@ -367,6 +377,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
     try {
       const metadata = buildCertificateMetadata(
         formData.username,
+        formData.nic,
         formData.degree,
         formData.dateIssued
       );
@@ -375,6 +386,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
         wallet,
         metadata,
         formData.username,
+        formData.nic,
         formData.degree,
         formData.dateIssued
       );
@@ -670,7 +682,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-white/80 text-sm">Recipient Name</label>
+              <label className="text-white/80 text-sm">Full Name</label>
               <input
                 type="text"
                 name="username"
@@ -681,9 +693,20 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
                 placeholder="Enter recipient name"
               />
             </div>
-
             <div className="space-y-2">
-              <label className="text-white/80 text-sm">Degree</label>
+              <label className="text-white/80 text-sm">NIC Number</label>
+              <input
+                type="text"
+                name="nic"
+                value={formData.nic}
+                onChange={handleInputChange}
+                required
+                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/40"
+                placeholder="Enter NIC number"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-white/80 text-sm">Course</label>
               <input
                 type="text"
                 name="degree"
@@ -752,6 +775,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
             <p className="text-white/60 text-sm mb-3">
               Submit the certificate details to the blockchain for permanent verification.
             </p>
+            {!qrCodePlaced && (
             <button
               onClick={handleSubmitToBlockchain}
               disabled={isSubmitting || !connected}
@@ -762,6 +786,7 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
                 {isSubmitting ? 'Submitting...' : 'Submit to Blockchain'}
               </div>
             </button>
+            )}
             {txHash && (
               <div className="mt-3 p-2 bg-emerald-900/20 rounded text-xs text-emerald-200 break-all">
                 <p className="font-medium">Successfully Completed</p>
@@ -912,6 +937,12 @@ const handleSelectInput = (type: 'username' | 'degree' | 'date' | 'custom', valu
               onClick={() => handleSelectInput('username')}
             >
               {formData.username}
+            </div>
+            <div 
+              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              onClick={() => handleSelectInput('nic')}
+            >
+              {formData.nic}
             </div>
             <div 
               className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"

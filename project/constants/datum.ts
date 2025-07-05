@@ -4,6 +4,7 @@ import { Data, resolvePaymentKeyHash } from '@meshsdk/core';
 export async function buildCertificateDatum(
   wallet: any,
   studentName: string,
+  nic: string,
   course: string,
   issuedDate: string
 ): Promise<Data> {

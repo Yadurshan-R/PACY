@@ -11,10 +11,11 @@ export async function mintCertificate(
   wallet: any,
   metadata: AssetMetadata,
   studentName: string,
+  nic: string,
   course: string,
   date: string
 ): Promise<{ txHash: string; assetName: string }> {
-  const datum: Data = await buildCertificateDatum(wallet, studentName, course, date);
+  const datum: Data = await buildCertificateDatum(wallet, studentName, nic, course, date);
 
   const redeemer: Data = {
     alternative: 0,
