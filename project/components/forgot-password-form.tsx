@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation";
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface MousePosition {
   x: number
@@ -21,23 +20,24 @@ interface ValidationError {
   message: string
 }
 
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false)
+export function ForgotPasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter()
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
   const [cancelMousePosition, setCancelMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
   const [isCancelHovering, setIsCancelHovering] = useState(false)
-  const [emailMousePosition, setEmailMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
-  const [isEmailHovering, setIsEmailHovering] = useState(false)
-  const [passwordMousePosition, setPasswordMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
-  const [isPasswordHovering, setIsPasswordHovering] = useState(false)
+  const [newPasswordMousePosition, setNewPasswordMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
+  const [isNewPasswordHovering, setIsNewPasswordHovering] = useState(false)
+  const [confirmPasswordMousePosition, setConfirmPasswordMousePosition] = useState<MousePosition>({ x: 0, y: 0 })
+  const [isConfirmPasswordHovering, setIsConfirmPasswordHovering] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
-  const emailRef = useRef<HTMLInputElement>(null)
-  const passwordRef = useRef<HTMLDivElement>(null)
+  const newPasswordRef = useRef<HTMLDivElement>(null)
+  const confirmPasswordRef = useRef<HTMLDivElement>(null)
 
   const handleMouseMove = useCallback(
     (e: MouseEvent, setter: (pos: MousePosition) => void, ref: React.RefObject<HTMLElement>) => {
@@ -56,8 +56,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     const elements = {
       container: containerRef.current,
       cancel: cancelRef.current,
-      email: emailRef.current,
-      password: passwordRef.current,
+      newPassword: newPasswordRef.current,
+      confirmPassword: confirmPasswordRef.current,
     }
 
     const handlers = {
@@ -71,15 +71,15 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         mouseenter: () => setIsCancelHovering(true),
         mouseleave: () => setIsCancelHovering(false),
       },
-      email: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setEmailMousePosition, emailRef),
-        mouseenter: () => setIsEmailHovering(true),
-        mouseleave: () => setIsEmailHovering(false),
+      newPassword: {
+        mousemove: (e: MouseEvent) => handleMouseMove(e, setNewPasswordMousePosition, newPasswordRef),
+        mouseenter: () => setIsNewPasswordHovering(true),
+        mouseleave: () => setIsNewPasswordHovering(false),
       },
-      password: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setPasswordMousePosition, passwordRef),
-        mouseenter: () => setIsPasswordHovering(true),
-        mouseleave: () => setIsPasswordHovering(false),
+      confirmPassword: {
+        mousemove: (e: MouseEvent) => handleMouseMove(e, setConfirmPasswordMousePosition, confirmPasswordRef),
+        mouseenter: () => setIsConfirmPasswordHovering(true),
+        mouseleave: () => setIsConfirmPasswordHovering(false),
       },
     }
 
@@ -105,20 +105,22 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   }, [handleMouseMove])
 
   const validateForm = useCallback((formData: FormData): ValidationError[] => {
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
+    const newPassword = formData.get("newPassword") as string
+    const confirmPassword = formData.get("confirmPassword") as string
     const errors: ValidationError[] = []
 
-    if (!email?.trim()) {
-      errors.push({ field: "email", message: "Email address is required" })
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push({ field: "email", message: "Invalid email address format" })
+    if (!newPassword?.trim()) {
+      errors.push({ field: "newPassword", message: "New password is required" })
+    } else if (newPassword.length < 8) {
+      errors.push({ field: "newPassword", message: "Password must be at least 8 characters" })
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      errors.push({ field: "newPassword", message: "Password must contain uppercase, lowercase, and number" })
     }
 
-    if (!password?.trim()) {
-      errors.push({ field: "password", message: "Password is required" })
-    } else if (password.length < 6) {
-      errors.push({ field: "password", message: "Password must be at least 6 characters" })
+    if (!confirmPassword?.trim()) {
+      errors.push({ field: "confirmPassword", message: "Please confirm your password" })
+    } else if (newPassword !== confirmPassword) {
+      errors.push({ field: "confirmPassword", message: "Passwords do not match" })
     }
 
     return errors
@@ -140,21 +142,18 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   }, [])
 
   const showSuccessToast = useCallback(() => {
-    toast.success("Login Successful", {
-      description: "Welcome back! You have been authenticated successfully.",
+    toast.success("Password Reset Successful", {
+      description: "Your password has been updated successfully.",
       duration: 4000,
     })
   }, [])
 
-const showAuthErrorToast = useCallback(
-  (heading: string, description: string) => {
+  const showAuthErrorToast = useCallback((heading: string, description: string) => {
     toast.error(heading, {
       description,
       duration: 6000,
-    });
-  },
-  []
-);
+    })
+  }, [])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -165,50 +164,40 @@ const showAuthErrorToast = useCallback(
       if (validationErrors.length > 0) {
         showErrorToast(validationErrors)
         const firstErrorField = validationErrors[0].field
-        if (firstErrorField === "email" && emailRef.current) {
-          emailRef.current.focus()
-        } else if (firstErrorField === "password" && passwordRef.current?.querySelector("input")) {
-          ; (passwordRef.current.querySelector("input") as HTMLInputElement).focus()
+        if (firstErrorField === "newPassword" && newPasswordRef.current?.querySelector("input")) {
+          ;(newPasswordRef.current.querySelector("input") as HTMLInputElement).focus()
+        } else if (firstErrorField === "confirmPassword" && confirmPasswordRef.current?.querySelector("input")) {
+          ;(confirmPasswordRef.current.querySelector("input") as HTMLInputElement).focus()
         }
         return
       }
 
       setIsLoading(true)
       try {
-         const email = formData.get("email") as string
-      const password = formData.get("password") as string
+        const newPassword = formData.get("newPassword") as string
+        const confirmPassword = formData.get("confirmPassword") as string
 
-      const res = await fetch("/api/auth/sign-in", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+        const res = await fetch("/api/auth/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ newPassword, confirmPassword }),
+        })
 
-      const data = await res.json();
+        const data = await res.json()
 
-      if (res.ok && data.isAdmin) {
-        showSuccessToast()
-        console.log("Login as Admin successful ")
-        setTimeout(() => {router.push(data.redirect); }, 500);
-      }
-      else if(res.ok && data.flag) {
-        showSuccessToast()
-        console.log("Login successful ")
-        setTimeout(() => {router.push("/changePassword"); }, 500);
-      }
-      else if(res.ok) {
-      showSuccessToast()
-      console.log("Login successful ")
-      router.push("/home");
-      }
-      else {
-        showAuthErrorToast(data.heading, data.message);
-        console.error("Login failed:", data.message)
-      }
-        
+        if (res.ok) {
+          showSuccessToast()
+          console.log("Password reset successful")
+          setTimeout(() => {
+            router.push("/login")
+          }, 1500)
+        } else {
+          showAuthErrorToast(data.heading, data.message)
+          console.error("Password reset failed:", data.message)
+        }
       } catch (error) {
-       showAuthErrorToast("Internal Server Error", "An unexpected error occurred. Please try again later.");
-        console.error("Login failed:", error)
+        showAuthErrorToast("Internal Server Error", "An unexpected error occurred. Please try again later.")
+        console.error("Password reset failed:", error)
       } finally {
         setIsLoading(false)
       }
@@ -224,7 +213,7 @@ const showAuthErrorToast = useCallback(
           radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${mousePos.y}px, 
             rgba(255,255,255,0.18) 0%, 
             rgba(255,255,255,0.08) 30%, 
-            rgba(255,255,255,0.04) 50%,
+            rgba(255,255,255,0.04) 50%, 
             transparent 70%),
           radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${mousePos.y - 10}px, 
             rgba(255,255,255,0.22) 0%, 
@@ -241,8 +230,12 @@ const showAuthErrorToast = useCallback(
     }
   }, [])
 
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword((prev) => !prev)
+  const toggleNewPasswordVisibility = useCallback(() => {
+    setShowNewPassword((prev) => !prev)
+  }, [])
+
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    setShowConfirmPassword((prev) => !prev)
   }, [])
 
   return (
@@ -254,31 +247,31 @@ const showAuthErrorToast = useCallback(
         }
         @keyframes subtlePulse {
           0%, 100% { 
-            transform: scale(1); 
-            opacity: 0.8; 
+            transform: scale(1);
+            opacity: 0.8;
           }
           50% { 
-            transform: scale(1.1); 
-            opacity: 1; 
+            transform: scale(1.1);
+            opacity: 1;
           }
         }
         @keyframes slideUp {
-          0% { 
-            opacity: 0; 
+          0% {
+            opacity: 0;
             transform: translateY(30px) scale(0.95);
           }
-          100% { 
-            opacity: 1; 
+          100% {
+            opacity: 1;
             transform: translateY(0) scale(1);
           }
         }
         @keyframes slideUpStaggered {
-          0% { 
-            opacity: 0; 
+          0% {
+            opacity: 0;
             transform: translateY(20px);
           }
-          100% { 
-            opacity: 1; 
+          100% {
+            opacity: 1;
             transform: translateY(0);
           }
         }
@@ -352,7 +345,7 @@ const showAuthErrorToast = useCallback(
               animation: "textGlow 6s ease-in-out infinite",
             }}
           >
-            Sign in to your Certara
+            Reset your Certara
             <span
               className="inline-block w-1 h-1 bg-white rounded-full ml-0.5 mr-1"
               style={{
@@ -360,7 +353,7 @@ const showAuthErrorToast = useCallback(
               }}
               aria-hidden="true"
             />
-            <span className="pl-1">account</span>
+            <span className="pl-1">password</span>
           </h1>
         </header>
 
@@ -381,78 +374,85 @@ const showAuthErrorToast = useCallback(
               disabled={isLoading}
               className="flex flex-col gap-8 disabled:opacity-75 disabled:pointer-events-none"
             >
-              <legend className="sr-only">Login credentials</legend>
+              <legend className="sr-only">Reset password credentials</legend>
 
               <div className="grid gap-4 animate-stagger-2">
-                <Label htmlFor="email" className="text-white text-sm font-medium smooth-transition">
-                  Enter Your Email Address
+                <Label htmlFor="newPassword" className="text-white text-sm font-medium smooth-transition">
+                  Enter New Password
                 </Label>
-                <div className="relative">
+                <div ref={newPasswordRef} className="relative">
                   <Input
-                    ref={emailRef}
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
+                    id="newPassword"
+                    name="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     required
-                    aria-describedby="email-description"
-                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
-                  />
-                  {isEmailHovering && (
-                    <div
-                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(emailMousePosition, isEmailHovering)}
-                      aria-hidden="true"
-                    />
-                  )}
-                </div>
-                <div id="email-description" className="sr-only">
-                  Enter your registered email address
-                </div>
-              </div>
-
-              <div className="grid gap-4 animate-stagger-3">
-                <Label htmlFor="password" className="text-white text-sm font-medium smooth-transition">
-                  Enter Your Password
-                  <Link href="/forgot-password">
-                  <span className="pl-40 text-gray-300 hover:text-gray-400 transition-colors duration-300">
-                    Forgot Password?
-                  </span>
-                  </Link>
-                </Label>
-                <div ref={passwordRef} className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    required
-                    aria-describedby="password-description"
+                    aria-describedby="new-password-description"
                     className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
                   />
-                  {isPasswordHovering && (
+                  {isNewPasswordHovering && (
                     <div
                       className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(passwordMousePosition, isPasswordHovering)}
+                      style={getGlassStyle(newPasswordMousePosition, isNewPasswordHovering)}
                       aria-hidden="true"
                     />
                   )}
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    aria-pressed={showPassword}
+                    onClick={toggleNewPasswordVisibility}
+                    aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                    aria-pressed={showNewPassword}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white hover:scale-110 z-20 no-outline rounded p-1"
                   >
-                    {showPassword ? (
+                    {showNewPassword ? (
                       <Eye className="h-5 w-5" aria-hidden="true" />
                     ) : (
                       <EyeOff className="h-5 w-5" aria-hidden="true" />
                     )}
                   </button>
                 </div>
-                <div id="password-description" className="sr-only">
-                  Enter your account password. Minimum 6 characters required.
+                <div id="new-password-description" className="sr-only">
+                  Enter your new password. Must be at least 8 characters with uppercase, lowercase, and number.
+                </div>
+              </div>
+
+              <div className="grid gap-4 animate-stagger-3">
+                <Label htmlFor="confirmPassword" className="text-white text-sm font-medium smooth-transition">
+                  Confirm New Password
+                </Label>
+                <div ref={confirmPasswordRef} className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    aria-describedby="confirm-password-description"
+                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
+                  />
+                  {isConfirmPasswordHovering && (
+                    <div
+                      className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
+                      style={getGlassStyle(confirmPasswordMousePosition, isConfirmPasswordHovering)}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                    aria-pressed={showConfirmPassword}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white hover:scale-110 z-20 no-outline rounded p-1"
+                  >
+                    {showConfirmPassword ? (
+                      <Eye className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      <EyeOff className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+                <div id="confirm-password-description" className="sr-only">
+                  Re-enter your new password to confirm it matches.
                 </div>
               </div>
 
@@ -462,7 +462,7 @@ const showAuthErrorToast = useCallback(
                   type="button"
                   variant="outline"
                   disabled={isLoading}
-                  onClick={() => (window.location.href = "/")}
+                  onClick={() => (window.location.href = "/sign-in")}
                   className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
                 >
                   {isCancelHovering && !isLoading && (
@@ -483,11 +483,11 @@ const showAuthErrorToast = useCallback(
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                      <span>Signing in...</span>
-                      <span className="sr-only">Please wait while we authenticate your credentials</span>
+                      <span>Resetting...</span>
+                      <span className="sr-only">Please wait while we reset your password</span>
                     </>
                   ) : (
-                    "Sign In"
+                    "Reset Password"
                   )}
                 </Button>
               </div>
