@@ -14,7 +14,7 @@ interface HeaderProps {
   onWalletStatusChange?: (isConnected: boolean) => void;
   walletAddress?: string | null;
   onBack: () => void;
-  currentView?: 'home' | 'designer' | 'certificate';  // Add this
+  currentView?: 'home' | 'designer' | 'certificate';
 }
 
 export default function Header({ onWalletStatusChange, walletAddress, onBack, currentView }: HeaderProps) {
@@ -38,16 +38,13 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
     }
   }, [connected, onWalletStatusChange]);
 
-  // Close popups when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node) &&
-          walletRef.current && !walletRef.current.contains(event.target as Node)) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setShowWalletPopup(false);
       }
       
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
-          profileRef.current && !profileRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
       }
     };
@@ -56,7 +53,6 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close dropdown when popup opens and vice versa
   useEffect(() => {
     if (showWalletPopup) {
       setIsProfileDropdownOpen(false);
@@ -77,7 +73,6 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
 
     setIsCheckingWallet(true);
     try {
-      // Try to detect Lace wallet
       if (typeof window !== 'undefined' && !window.cardano?.lace) {
         setShowWalletPopup(true);
         return;
@@ -131,17 +126,22 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
       if (!isVisible) return {};
       return {
         background: `
-          radial-gradient(ellipse 80px 50px at ${mousePos.x}px ${mousePos.y}px, 
-            rgba(255,255,255,0.15) 0%, 
+          radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${mousePos.y}px, 
+            rgba(255,255,255,0.18) 0%, 
             rgba(255,255,255,0.08) 30%, 
-            rgba(255,255,255,0.03) 50%,
+            rgba(255,255,255,0.04) 50%,
             transparent 70%),
-          radial-gradient(ellipse 40px 25px at ${mousePos.x - 10}px ${mousePos.y - 8}px, 
-            rgba(255,255,255,0.2) 0%, 
+          radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${mousePos.y - 10}px, 
+            rgba(255,255,255,0.22) 0%, 
             rgba(255,255,255,0.1) 40%, 
             transparent 70%)
         `,
-        filter: "blur(0.5px) contrast(1.1)",
+        mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        maskComposite: "xor" as const,
+        WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        WebkitMaskComposite: "xor" as const,
+        padding: "1px",
+        filter: "blur(0.8px) contrast(1.1)",
       };
     };
   }, []);
@@ -149,31 +149,70 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
   return (
     <>
       <style jsx>{`
+        @keyframes slideUp {
+          0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @keyframes slideUpStaggered {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes gentleBounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-2px);
+          }
+        }
+        .animate-fade-in {
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
         .smooth-transition {
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .hover-lift:hover {
           transform: translateY(-1px);
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .animate-fade-in {
-          animation: fadeIn 0.2s ease-out;
+        .gentle-bounce {
+          animation: gentleBounce 3s ease-in-out infinite;
         }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-5px); }
-          to { opacity: 1; transform: translateY(0); }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-fade-in,
+          .gentle-bounce {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+          .smooth-transition,
+          .hover-lift:hover {
+            transition: none;
+          }
         }
       `}</style>
       
-      <header className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-md border-b border-white/10 text-white shadow-2xl z-50">
+      <header className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-sm border-b border-white/20 text-white z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mr-3 border border-white/20">
+              <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mr-3 border border-white/20 hover-lift">
                 <Award className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-light tracking-wide">PACY</span>
+              <span className="text-xl font-light tracking-wide">Certara</span>
             </div>
 
             {/* Wallet + Profile */}
@@ -188,8 +227,8 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   onMouseLeave={() => setIsWalletHovering(false)}
                   className={`relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border ${
                     connected
-                      ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/30 text-emerald-200'
-                      : 'bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-sm'
+                      ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-white/20 hover:border-white/40 text-white'
+                      : 'bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40 text-white'
                   } ${isCheckingWallet ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isWalletHovering && (
@@ -209,7 +248,7 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                 {showWalletPopup && (
                   <div
                     ref={popupRef}
-                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-lg border border-white/10 rounded-lg shadow-2xl z-[1000] animate-fade-in"
+                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
                       <div className="flex items-start">
@@ -226,7 +265,7 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                               href="https://www.lace.io/"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-emerald-600/20 text-emerald-200 hover:bg-emerald-600/30 border border-emerald-400/30"
+                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 border border-white/20 hover:border-white/40 text-emerald-200 smooth-transition hover-lift"
                             >
                               Get Lace Wallet
                               <ExternalLink className="w-4 h-4 ml-1" />
@@ -234,7 +273,7 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                             <button
                               type="button"
                               onClick={() => setShowWalletPopup(false)}
-                              className="ml-2 inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                              className="ml-2 inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white smooth-transition hover-lift"
                             >
                               Close
                             </button>
@@ -253,7 +292,7 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   onMouseMove={(e) => handleMouseMove(e.nativeEvent, setProfileMousePosition, profileRef)}
                   onMouseEnter={() => setIsProfileHovering(true)}
                   onMouseLeave={() => setIsProfileHovering(false)}
-                  className="relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 backdrop-blur-sm"
+                  className="relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 hover:border-white/40"
                 >
                   {isProfileHovering && (
                     <div
@@ -266,11 +305,11 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   <ChevronDown className="ml-1 w-4 h-4 relative z-10" />
                 </button>
 
-                {/* Profile Dropdown - matching popup style */}
+                {/* Profile Dropdown */}
                 {isProfileDropdownOpen && (
                   <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-lg border border-white/10 rounded-lg shadow-2xl z-[1000] animate-fade-in"
+                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
                       <div className="flex items-start">
@@ -281,14 +320,13 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                           <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
                           <p className="text-sm text-white/80">{userProfile.email}</p>
                           
-                          <div className="mt-4 pt-4 border-t border-white/10">
+                          <div className="mt-4 pt-4 border-t border-white/20">
                             <button
                               onClick={() => {
-                                // Add your sign out logic here
                                 setIsProfileDropdownOpen(false);
                                 localStorage.clear();
                               }}
-                              className="w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white"
+                              className="w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition"
                             >
                               Sign Out
                             </button>

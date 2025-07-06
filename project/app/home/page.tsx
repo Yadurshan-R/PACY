@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import ActionButtons from '@/components/ActionButtons';
 import InfoCards from '@/components/InfoCards';
 import TemplateDesigner from '@/components/TemplateDesigner';
 import CreateCertificate from '@/components/CreateCertificate';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const [view, setView] = useState<'home' | 'designer' | 'certificate'>('home');
@@ -23,8 +22,7 @@ export default function HomePage() {
       localStorage.clear();
       router.push('/');
     }
-  }, []);
-
+  }, [router]);
 
   const handleBackToHome = () => {
     setView('home');
@@ -41,7 +39,6 @@ export default function HomePage() {
     }
     setView('certificate');
   };
-
 
   return (
     <>
@@ -85,7 +82,7 @@ export default function HomePage() {
           50% { transform: translateY(-2px); }
         }
         .animate-fade-in {
-          animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .animate-stagger-1 {
           animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
@@ -100,16 +97,16 @@ export default function HomePage() {
           animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
         }
         .hover-lift:hover {
-          transform: translateY(-2px);
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transform: translateY(-1px);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .smooth-transition {
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-background {
-          background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          background: rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         }
         @media (prefers-reduced-motion: reduce) {
           .animate-fade-in,
@@ -127,7 +124,8 @@ export default function HomePage() {
           }
         }
       `}</style>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white pt-16">
+      
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white pt-16">
         <Header  
           onWalletStatusChange={handleWalletStatusChange}
           walletAddress={walletAddress}
@@ -139,21 +137,21 @@ export default function HomePage() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
             <div className="mb-12 animate-stagger-1">
               <h1 
-                className="text-4xl sm:text-5xl lg:text-6xl font-light text-white mb-6 tracking-wide"
+                className="text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-6 tracking-normal"
                 style={{
                   animation: "textGlow 6s ease-in-out infinite",
                 }}
               >
-                Welcome to PACY
+                Welcome to Certara
                 <span
-                  className="inline-block w-1 h-1 bg-white rounded-full ml-1 mr-1"
+                  className="inline-block w-1 h-1 bg-white rounded-full ml-1"
                   style={{
                     animation: "subtlePulse 4s ease-in-out infinite",
                   }}
                   aria-hidden="true"
                 />
               </h1>
-              <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
                 Create, manage, and verify blockchain-based certificates with ease.
               </p>
             </div>
@@ -161,21 +159,22 @@ export default function HomePage() {
             <div className="animate-stagger-2">
               <ActionButtons
                 onCreateTemplate={() => setView('designer')}
-                onCreateCertificate={() => setView('certificate')}
+                onCreateCertificate={handleCreateCertificate}
               />
             </div>
+
             {showWalletPrompt && (
-              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
-                <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-6 max-w-md mx-4">
-                  <h3 className="text-xl font-medium mb-4">Wallet Required</h3>
-                  <p className="text-slate-300 mb-6">
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
+                <div className="bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg p-6 max-w-md mx-4">
+                  <h3 className="text-xl font-medium mb-4 text-white">Wallet Required</h3>
+                  <p className="text-white/70 mb-6">
                     You need to connect your wallet to create certificates. 
                     Please connect your wallet first.
                   </p>
                   <div className="flex justify-end space-x-3">
                     <button 
                       onClick={() => setShowWalletPrompt(false)}
-                      className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition"
+                      className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white smooth-transition hover-lift"
                     >
                       Cancel
                     </button>
@@ -184,7 +183,7 @@ export default function HomePage() {
                         setShowWalletPrompt(false);
                         // You might want to automatically open the wallet connect popup here
                       }}
-                      className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition"
+                      className="px-4 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-white/20 hover:border-white/40 text-white smooth-transition hover-lift"
                     >
                       Connect Wallet
                     </button>
@@ -193,7 +192,7 @@ export default function HomePage() {
               </div>
             )}
 
-            <div className="mt-20 animate-stagger-3">
+            <div className="mt-16 animate-stagger-3">
               <InfoCards />
             </div>
           </main>
