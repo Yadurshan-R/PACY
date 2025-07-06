@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 
 interface Organization {
   id: number
-  organizationName: string
+  orgName: string
   walletAddress: string
 }
 
@@ -17,85 +17,6 @@ interface MousePosition {
   x: number
   y: number
 }
-
-// Sample organization data
-const sampleOrganizations: Organization[] = [
-  {
-    id: 1,
-    organizationName: "Tech Solutions Inc.",
-    walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
-  },
-  {
-    id: 2,
-    organizationName: "Digital Innovations Ltd.",
-    walletAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-  },
-  {
-    id: 3,
-    organizationName: "Cyber Systems Corp.",
-    walletAddress: "0x567890abcdef1234567890abcdef1234567890ab",
-  },
-  {
-    id: 4,
-    organizationName: "Business Dynamics LLC",
-    walletAddress: "0x234567890abcdef1234567890abcdef123456789",
-  },
-  {
-    id: 5,
-    organizationName: "Corporate Solutions Group",
-    walletAddress: "0x890abcdef1234567890abcdef1234567890abcde",
-  },
-  {
-    id: 6,
-    organizationName: "Engineering Excellence Co.",
-    walletAddress: "0xcdef1234567890abcdef1234567890abcdef1234",
-  },
-  {
-    id: 7,
-    organizationName: "Infrastructure Partners",
-    walletAddress: "0x4567890abcdef1234567890abcdef1234567890a",
-  },
-  {
-    id: 8,
-    organizationName: "Research Institute of Technology",
-    walletAddress: "0xef1234567890abcdef1234567890abcdef123456",
-  },
-  {
-    id: 9,
-    organizationName: "Creative Arts Foundation",
-    walletAddress: "0x67890abcdef1234567890abcdef1234567890abc",
-  },
-  {
-    id: 10,
-    organizationName: "Cultural Heritage Society",
-    walletAddress: "0xf1234567890abcdef1234567890abcdef1234567",
-  },
-  {
-    id: 11,
-    organizationName: "Global Finance Corporation",
-    walletAddress: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef",
-  },
-  {
-    id: 12,
-    organizationName: "Healthcare Innovation Hub",
-    walletAddress: "0x9876543210fedcba0987654321fedcba09876543",
-  },
-  {
-    id: 13,
-    organizationName: "Sustainable Energy Solutions",
-    walletAddress: "0xfedcba0987654321fedcba0987654321fedcba09",
-  },
-  {
-    id: 14,
-    organizationName: "Educational Technology Partners",
-    walletAddress: "0x13579bdf2468ace013579bdf2468ace013579bdf",
-  },
-  {
-    id: 15,
-    organizationName: "Blockchain Development Consortium",
-    walletAddress: "0xace02468bdf13579ace02468bdf13579ace02468",
-  },
-]
 
 export default function OrganizationsPage() {
   const router = useRouter()
@@ -191,19 +112,37 @@ export default function OrganizationsPage() {
     }
   }, [])
 
-  useEffect(() => {
-    // Simulate API call for organizations
-    const timer = setTimeout(() => {
-      setOrganizations(sampleOrganizations)
-      setLoading(false)
-    }, 1000)
+useEffect(() => {
+  const fetchOrganizations = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/record/get-wallet");
+      const data = await res.json();
 
-    return () => clearTimeout(timer)
-  }, [])
+      if (data?.users) {
+        const mapped: Organization[] = data.users.map((u: any, idx: number) => ({
+          id: String(idx + 1),
+          orgName: u.orgName || "Unnamed Organization",
+          walletAddress: u.walletAddress || "No Wallet Address updated",
+        }));
+        setOrganizations(mapped);
+      } else {
+        setOrganizations([]);
+      }
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
+      setOrganizations([]);
+    }
+    setLoading(false);
+  };
+
+  fetchOrganizations();
+}, []);
+
 
   const filteredOrganizations = organizations.filter(
     (org) =>
-      org.organizationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.orgName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       org.walletAddress.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
@@ -334,7 +273,7 @@ export default function OrganizationsPage() {
                                 <div className="h-8 w-8 bg-white/10 rounded-full flex items-center justify-center">
                                   <Building2 className="h-4 w-4 text-white/70" />
                                 </div>
-                                <span className="font-medium text-white">{organization.organizationName}</span>
+                                <span className="font-medium text-white">{organization.orgName}</span>
                               </div>
                             </td>
                             <td className="text-white/60 py-4 px-4">
