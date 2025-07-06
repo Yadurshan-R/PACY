@@ -159,15 +159,17 @@ export default function HomePage() {
                 </Button>
               </Link>
 
+              <Link href="/organizations">
               <Button className="designer-text relative overflow-hidden bg-white text-black hover:bg-white/90 transition-all duration-300 rounded-xl h-16 px-12 text-lg font-medium group shadow-xl focus:ring-2 focus:ring-white/20 focus:ring-offset-0">
                 <div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
                   style={{ animation: "shimmer 3s ease-in-out infinite 2s" }}
                 />
                 <span className="relative z-10 flex items-center gap-3">
-                  Contact Us
+                  View Organizations
                 </span>
               </Button>
+              </Link>
             </motion.div>
           </div>
           <motion.div
@@ -300,6 +302,19 @@ export default function HomePage() {
           </motion.div>
         </div>
       </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="text-center mt-20 mb-10"
+          >
+            <a
+              href="mailto:contact@certara.com"
+              className="designer-text text-white/70 hover:text-white transition-colors duration-300 text-lg"
+            >
+              contact@certara.com
+            </a>
+          </motion.div>
     </>
   )
 }

@@ -69,7 +69,6 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   const [isCanvasHovering, setIsCanvasHovering] = useState(false);
   const [exported, setExported] = useState(false);
 
-  // Refs
   const selectorRef = useRef<HTMLDivElement>(null);
   const loadButtonRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);

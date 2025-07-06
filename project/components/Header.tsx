@@ -207,15 +207,11 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
       <header className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-sm border-b border-white/20 text-white z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
+
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mr-3 border border-white/20 hover-lift">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-light tracking-wide">Certara</span>
+              <span className="text-2xl font-light tracking-wide">Certara</span>
             </div>
 
-            {/* Wallet + Profile */}
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <button
@@ -251,16 +247,13 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                     className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5">
-                          <Wallet className="w-5 h-5 text-emerald-400" />
-                        </div>
+                      <div className="flex">
                         <div className="ml-3">
                           <h3 className="text-lg font-medium text-white">Lace Wallet Required</h3>
                           <div className="mt-1 text-sm text-white/80">
                             <p>To connect your wallet, please install the Lace browser extension.</p>
                           </div>
-                          <div className="mt-4">
+                          <div className="mt-4 flex">
                             <a
                               href="https://www.lace.io/"
                               target="_blank"
@@ -302,10 +295,8 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                     />
                   )}
                   <User className="w-6 h-6 relative z-10" />
-                  <ChevronDown className="ml-1 w-4 h-4 relative z-10" />
                 </button>
 
-                {/* Profile Dropdown */}
                 {isProfileDropdownOpen && (
                   <div
                     ref={dropdownRef}
@@ -313,9 +304,6 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   >
                     <div className="p-4">
                       <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5">
-                          <User className="w-5 h-5 text-emerald-400" />
-                        </div>
                         <div className="ml-3 w-full">
                           <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
                           <p className="text-sm text-white/80">{userProfile.email}</p>

@@ -22,7 +22,6 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
   const [isDegreeSet, setIsDegreeSet] = useState(false);
   const { editor, onReady } = useFabricJSEditor();
 
-  // Glass effect states
   const [degreeInputMousePosition, setDegreeInputMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
   const [isDegreeInputHovering, setIsDegreeInputHovering] = useState(false);
   const [startButtonMousePosition, setStartButtonMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
@@ -256,11 +255,11 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
             }
           }
         `}</style>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-fade-in">
             <div className="text-center animate-stagger-1">
-              <div className="w-16 h-16 bg-emerald-600/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
-                <Sparkles className="w-8 h-8 text-emerald-400" />
+              <div className="w-16 h-16 bg-gray-400/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-2xl font-light text-white mb-2 tracking-normal">
                 Create Template
@@ -301,7 +300,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
                   if (degreeName.trim()) setIsDegreeSet(true);
                 }}
                 disabled={!degreeName.trim()}
-                className="relative overflow-hidden w-full bg-emerald-600/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 smooth-transition disabled:opacity-50 disabled:cursor-not-allowed hover-lift"
+                className="relative overflow-hidden w-full bg-gray-400/20 text-white px-6 py-3 rounded-lg border border-white/20 hover:border-white/40 smooth-transition disabled:opacity-50 disabled:cursor-not-allowed hover-lift"
               >
                 {isStartButtonHovering && degreeName.trim() && (
                   <div
@@ -380,23 +379,21 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
           }
         }
       `}</style>
-      <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 min-h-screen">
-        {/* Sidebar */}
+      <div className="flex flex-col lg:flex-row gap-6 p-6 bg-black min-h-screen">
         <div className="w-full lg:w-80 bg-white/10 backdrop-blur-sm rounded-lg p-6 space-y-6 border border-white/20 animate-slide-left">
           <div className="text-center">
-            <div className="w-16 h-16 bg-emerald-600/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
-              <Palette className="w-8 h-8 text-emerald-400" />
+            <div className="w-16 h-16 bg-gray-400/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+              <Palette className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-xl font-light text-white mb-2 tracking-normal">Template Designer</h2>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
               <p className="text-sm text-white/70 mb-1">Creating Template</p>
-              <p className="text-emerald-400 font-medium">{degreeName}</p>
+              <p className="text-white font-medium">{degreeName}</p>
             </div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
             <h3 className="text-white font-medium mb-3 flex items-center">
-              <Type className="w-4 h-4 mr-2 text-emerald-400" />
+              <Type className="w-4 h-4 mr-2 text-white" />
               Add Elements
             </h3>
             <div className="space-y-2">
@@ -417,7 +414,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
 
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
             <h3 className="text-white font-medium mb-3 flex items-center">
-              <UploadCloud className="w-4 h-4 mr-2 text-emerald-400" />
+              <UploadCloud className="w-4 h-4 mr-2 text-white" />
               Background Image
             </h3>
             <div
@@ -492,15 +489,14 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
           </div>
         </div>
 
-        {/* Canvas Area */}
         <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 animate-slide-right">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-xl font-light text-white tracking-normal">Design Canvas</h2>
               <p className="text-white/70 text-sm mt-1">Template: {degreeName}</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4">
                 <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
                 <span className="text-emerald-400 text-sm font-medium">Live Design</span>
               </div>
