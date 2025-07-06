@@ -465,54 +465,96 @@ function CreateCertificate(_a) {
             }
         });
     }); };
-    var downloadCanvasAsPDF = function () {
-        if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
-            alert('Please place the QR code on the certificate before exporting');
-            return;
-        }
-        var canvas = editor.canvas;
-        var naturalWidth = originalSize.width, naturalHeight = originalSize.height;
-        var displayWidth = canvas.getWidth();
-        var displayHeight = canvas.getHeight();
-        var scaleX = naturalWidth / displayWidth;
-        var scaleY = naturalHeight / displayHeight;
-        var exportScale = Math.min(scaleX, scaleY);
-        canvas.getObjects().forEach(function (obj) {
-            var _a, _b, _c, _d;
-            obj.scaleX = ((_a = obj.scaleX) !== null && _a !== void 0 ? _a : 1) * exportScale;
-            obj.scaleY = ((_b = obj.scaleY) !== null && _b !== void 0 ? _b : 1) * exportScale;
-            obj.left = ((_c = obj.left) !== null && _c !== void 0 ? _c : 0) * exportScale;
-            obj.top = ((_d = obj.top) !== null && _d !== void 0 ? _d : 0) * exportScale;
-            obj.setCoords();
+    var downloadCanvasAsPDF = function () { return __awaiter(_this, void 0, void 0, function () {
+        var canvas, naturalWidth, naturalHeight, displayWidth, displayHeight, scaleX, scaleY, exportScale, dataUrl, pdf, response, result, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
+                        alert('Please place the QR code on the certificate before exporting');
+                        return [2 /*return*/];
+                    }
+                    canvas = editor.canvas;
+                    naturalWidth = originalSize.width, naturalHeight = originalSize.height;
+                    displayWidth = canvas.getWidth();
+                    displayHeight = canvas.getHeight();
+                    scaleX = naturalWidth / displayWidth;
+                    scaleY = naturalHeight / displayHeight;
+                    exportScale = Math.min(scaleX, scaleY);
+                    canvas.getObjects().forEach(function (obj) {
+                        var _a, _b, _c, _d;
+                        obj.scaleX = ((_a = obj.scaleX) !== null && _a !== void 0 ? _a : 1) * exportScale;
+                        obj.scaleY = ((_b = obj.scaleY) !== null && _b !== void 0 ? _b : 1) * exportScale;
+                        obj.left = ((_c = obj.left) !== null && _c !== void 0 ? _c : 0) * exportScale;
+                        obj.top = ((_d = obj.top) !== null && _d !== void 0 ? _d : 0) * exportScale;
+                        obj.setCoords();
+                    });
+                    canvas.setWidth(naturalWidth);
+                    canvas.setHeight(naturalHeight);
+                    canvas.renderAll();
+                    dataUrl = canvas.toDataURL({
+                        format: 'png',
+                        multiplier: 1
+                    });
+                    canvas.getObjects().forEach(function (obj) {
+                        var _a, _b, _c, _d;
+                        obj.scaleX = ((_a = obj.scaleX) !== null && _a !== void 0 ? _a : 1) / exportScale;
+                        obj.scaleY = ((_b = obj.scaleY) !== null && _b !== void 0 ? _b : 1) / exportScale;
+                        obj.left = ((_c = obj.left) !== null && _c !== void 0 ? _c : 0) / exportScale;
+                        obj.top = ((_d = obj.top) !== null && _d !== void 0 ? _d : 0) / exportScale;
+                        obj.setCoords();
+                    });
+                    canvas.setWidth(displayWidth);
+                    canvas.setHeight(displayHeight);
+                    canvas.renderAll();
+                    pdf = new jspdf_1["default"]({
+                        orientation: naturalWidth > naturalHeight ? 'landscape' : 'portrait',
+                        unit: 'px',
+                        format: [naturalWidth, naturalHeight]
+                    });
+                    pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
+                    // Save the PDF first
+                    pdf.save(formData.username.replace(/\s+/g, '_') + "_" + selectedDegree.replace(/\s+/g, '_') + "_certificate.pdf");
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, fetch('/api/record/add-canditate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                userId: sessionStorage.getItem("userId"),
+                                courseName: selectedDegree,
+                                candidateName: formData.username,
+                                nicNumber: formData.nic,
+                                dateIssued: formData.dateIssued,
+                                blockHash: txHash
+                            })
+                        })];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) {
+                        throw new Error('Failed to store certificate record');
+                    }
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    result = _a.sent();
+                    console.log('Certificate record stored:', result);
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_3 = _a.sent();
+                    console.error('Error storing certificate record:', error_3);
+                    // You might want to show a toast notification here instead of alert
+                    alert('Certificate was downloaded but record storage failed. Please contact support.');
+                    return [3 /*break*/, 5];
+                case 5:
+                    setExported(true);
+                    setTimeout(function () { return onBack(); }, 1000);
+                    return [2 /*return*/];
+            }
         });
-        canvas.setWidth(naturalWidth);
-        canvas.setHeight(naturalHeight);
-        canvas.renderAll();
-        var dataUrl = canvas.toDataURL({
-            format: 'png',
-            multiplier: 1
-        });
-        canvas.getObjects().forEach(function (obj) {
-            var _a, _b, _c, _d;
-            obj.scaleX = ((_a = obj.scaleX) !== null && _a !== void 0 ? _a : 1) / exportScale;
-            obj.scaleY = ((_b = obj.scaleY) !== null && _b !== void 0 ? _b : 1) / exportScale;
-            obj.left = ((_c = obj.left) !== null && _c !== void 0 ? _c : 0) / exportScale;
-            obj.top = ((_d = obj.top) !== null && _d !== void 0 ? _d : 0) / exportScale;
-            obj.setCoords();
-        });
-        canvas.setWidth(displayWidth);
-        canvas.setHeight(displayHeight);
-        canvas.renderAll();
-        var pdf = new jspdf_1["default"]({
-            orientation: naturalWidth > naturalHeight ? 'landscape' : 'portrait',
-            unit: 'px',
-            format: [naturalWidth, naturalHeight]
-        });
-        pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
-        pdf.save(formData.username.replace(/\s+/g, '_') + "_" + selectedDegree.replace(/\s+/g, '_') + "_certificate.pdf");
-        setExported(true);
-        setTimeout(function () { return onBack(); }, 1000);
-    };
+    }); };
     var handleFormSubmit = function (e) { return __awaiter(_this, void 0, void 0, function () {
         var objects;
         return __generator(this, function (_a) {

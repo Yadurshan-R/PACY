@@ -495,61 +495,92 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
     URL.revokeObjectURL(svgUrl);
   };
 
-  const downloadCanvasAsPDF = () => {
-    if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
-      alert('Please place the QR code on the certificate before exporting');
-      return;
+  const downloadCanvasAsPDF = async () => {
+  if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
+    alert('Please place the QR code on the certificate before exporting');
+    return;
+  }
+
+  const canvas = editor.canvas;
+  const { width: naturalWidth, height: naturalHeight } = originalSize;
+
+  const displayWidth = canvas.getWidth();
+  const displayHeight = canvas.getHeight();
+
+  const scaleX = naturalWidth / displayWidth;
+  const scaleY = naturalHeight / displayHeight;
+  const exportScale = Math.min(scaleX, scaleY);
+
+  canvas.getObjects().forEach((obj) => {
+    obj.scaleX = (obj.scaleX ?? 1) * exportScale;
+    obj.scaleY = (obj.scaleY ?? 1) * exportScale;
+    obj.left = (obj.left ?? 0) * exportScale;
+    obj.top = (obj.top ?? 0) * exportScale;
+    obj.setCoords();
+  });
+  canvas.setWidth(naturalWidth);
+  canvas.setHeight(naturalHeight);
+  canvas.renderAll();
+
+  const dataUrl = canvas.toDataURL({
+    format: 'png',
+    multiplier: 1,
+  });
+
+  canvas.getObjects().forEach((obj) => {
+    obj.scaleX = (obj.scaleX ?? 1) / exportScale;
+    obj.scaleY = (obj.scaleY ?? 1) / exportScale;
+    obj.left = (obj.left ?? 0) / exportScale;
+    obj.top = (obj.top ?? 0) / exportScale;
+    obj.setCoords();
+  });
+  canvas.setWidth(displayWidth);
+  canvas.setHeight(displayHeight);
+  canvas.renderAll();
+
+  const pdf = new jsPDF({
+    orientation: naturalWidth > naturalHeight ? 'landscape' : 'portrait',
+    unit: 'px',
+    format: [naturalWidth, naturalHeight],
+  });
+
+  pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
+  
+  // Save the PDF first
+  pdf.save(`${formData.username.replace(/\s+/g, '_')}_${selectedDegree.replace(/\s+/g, '_')}_certificate.pdf`);
+
+  // Then make the API call to store the record
+  try {
+    const response = await fetch('/api/record/add-canditate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: sessionStorage.getItem("userId"),
+        courseName: selectedDegree,
+        candidateName: formData.username,
+        nicNumber: formData.nic,
+        dateIssued: formData.dateIssued,
+        blockHash: txHash
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to store certificate record');
     }
 
-    const canvas = editor.canvas;
-    const { width: naturalWidth, height: naturalHeight } = originalSize;
+    const result = await response.json();
+    console.log('Certificate record stored:', result);
+  } catch (error) {
+    console.error('Error storing certificate record:', error);
+    // You might want to show a toast notification here instead of alert
+    alert('Certificate was downloaded but record storage failed. Please contact support.');
+  }
 
-    const displayWidth = canvas.getWidth();
-    const displayHeight = canvas.getHeight();
-
-    const scaleX = naturalWidth / displayWidth;
-    const scaleY = naturalHeight / displayHeight;
-    const exportScale = Math.min(scaleX, scaleY);
-
-    canvas.getObjects().forEach((obj) => {
-      obj.scaleX = (obj.scaleX ?? 1) * exportScale;
-      obj.scaleY = (obj.scaleY ?? 1) * exportScale;
-      obj.left = (obj.left ?? 0) * exportScale;
-      obj.top = (obj.top ?? 0) * exportScale;
-      obj.setCoords();
-    });
-    canvas.setWidth(naturalWidth);
-    canvas.setHeight(naturalHeight);
-    canvas.renderAll();
-
-    const dataUrl = canvas.toDataURL({
-      format: 'png',
-      multiplier: 1,
-    });
-
-    canvas.getObjects().forEach((obj) => {
-      obj.scaleX = (obj.scaleX ?? 1) / exportScale;
-      obj.scaleY = (obj.scaleY ?? 1) / exportScale;
-      obj.left = (obj.left ?? 0) / exportScale;
-      obj.top = (obj.top ?? 0) / exportScale;
-      obj.setCoords();
-    });
-    canvas.setWidth(displayWidth);
-    canvas.setHeight(displayHeight);
-    canvas.renderAll();
-
-    const pdf = new jsPDF({
-      orientation: naturalWidth > naturalHeight ? 'landscape' : 'portrait',
-      unit: 'px',
-      format: [naturalWidth, naturalHeight],
-    });
-
-    pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
-    pdf.save(`${formData.username.replace(/\s+/g, '_')}_${selectedDegree.replace(/\s+/g, '_')}_certificate.pdf`);
-
-    setExported(true);
-    setTimeout(() => onBack(), 1000);
-  };
+  setExported(true);
+  setTimeout(() => onBack(), 1000);
+};
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
