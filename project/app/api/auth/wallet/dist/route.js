@@ -70,6 +70,11 @@ function POST(request) {
                                 message: "No account found with the provided user ID."
                             }, { status: 404 })];
                     }
+                    if (user.walletAddress != walletAddress) {
+                        return [2 /*return*/, server_1.NextResponse.json({
+                                message: "Wallet Address Mismatch."
+                            }, { status: 409 })];
+                    }
                     if (user.walletAddress) {
                         return [2 /*return*/, server_1.NextResponse.json({
                                 message: "Already the wallet address has been stored."

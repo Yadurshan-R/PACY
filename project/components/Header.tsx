@@ -2,8 +2,8 @@
 
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { ChevronDown, Wallet, Award, User, ExternalLink } from "lucide-react";
-import ProfileDropdown from "./ProfileDropdown";
 import { useWallet } from "@meshsdk/react";
+import { toast } from "sonner";
 
 interface MousePosition {
   x: number;
@@ -111,27 +111,42 @@ export default function Header({
     }
   };
 
-  useEffect(() => {
-    async function fetchAddresses() {
-      if (wallet) {
-        try {
-          const used = await wallet.getUsedAddresses();
-          const walletAddress = used[0];
-          const userId = sessionStorage.getItem("userId");
+useEffect(() => {
+  async function fetchAddresses() {
+    if (wallet) {
+      try {
+        const used = await wallet.getUsedAddresses();
+        const walletAddress = used[0];
+        const userId = sessionStorage.getItem("userId");
 
-          await fetch("/api/auth/wallet", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId, walletAddress }),
-            });
-        } catch (err) {
-          console.warn('Error fetching addresses:', err);
+        const response = await fetch("/api/auth/wallet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, walletAddress }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json(); // 🔥 Parse JSON error message
+
+          console.warn("Server responded with error:", response.status, errorData);
+          await handleDisconnect();
+
+          toast.error("Validation Error", {
+            description: errorData.message || "Wallet validation failed.",
+            duration: 6000,
+          });
         }
+
+      } catch (err) {
+        console.warn("Error fetching addresses or sending request:", err);
+        await handleDisconnect();
       }
     }
+  }
 
-    fetchAddresses();
-  }, [wallet]);
+  fetchAddresses();
+}, [wallet]);
+
 
   const handleDisconnect = async () => {
     try {

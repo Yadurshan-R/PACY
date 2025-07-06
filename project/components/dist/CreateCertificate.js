@@ -93,7 +93,6 @@ function CreateCertificate(_a) {
     var _y = react_1.useState({ x: 0, y: 0 }), canvasMousePosition = _y[0], setCanvasMousePosition = _y[1];
     var _z = react_1.useState(false), isCanvasHovering = _z[0], setIsCanvasHovering = _z[1];
     var _0 = react_1.useState(false), exported = _0[0], setExported = _0[1];
-    // Refs
     var selectorRef = react_1.useRef(null);
     var loadButtonRef = react_1.useRef(null);
     var canvasRef = react_1.useRef(null);
@@ -557,7 +556,7 @@ function CreateCertificate(_a) {
     }); };
     return (React.createElement(React.Fragment, null,
         React.createElement("style", { jsx: true }, "\n        @keyframes slideUp {\n          0% {\n            opacity: 0;\n            transform: translateY(30px) scale(0.95);\n          }\n          100% {\n            opacity: 1;\n            transform: translateY(0) scale(1);\n          }\n        }\n        @keyframes slideUpStaggered {\n          0% {\n            opacity: 0;\n            transform: translateY(20px);\n          }\n          100% {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        @keyframes gentleBounce {\n          0%, 100% {\n            transform: translateY(0);\n          }\n          50% {\n            transform: translateY(-2px);\n          }\n        }\n        .animate-fade-in {\n          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;\n        }\n        .animate-stagger-1 {\n          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;\n        }\n        .animate-stagger-2 {\n          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;\n        }\n        .smooth-transition {\n          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);\n        }\n        .hover-lift:hover {\n          transform: translateY(-1px);\n          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);\n        }\n        @media (prefers-reduced-motion: reduce) {\n          .animate-fade-in,\n          .animate-stagger-1,\n          .animate-stagger-2,\n          .gentle-bounce {\n            animation: none;\n            opacity: 1;\n            transform: none;\n          }\n          .smooth-transition,\n          .hover-lift:hover {\n            transition: none;\n          }\n        }\n      "),
-        !isDegreeSet && !showForm && (React.createElement("div", { className: "min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4" },
+        !isDegreeSet && !showForm && (React.createElement("div", { className: "min-h-screen flex items-center justify-center bg-black p-4" },
             React.createElement("div", { className: "bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-stagger-1" },
                 React.createElement("div", { className: "text-center" },
                     React.createElement("h2", { className: "text-2xl font-light text-white mb-2 tracking-normal" }, "Choose Degree Template"),
@@ -569,7 +568,7 @@ function CreateCertificate(_a) {
                             React.createElement("option", { value: "", className: "bg-gray-900 text-white" }, isLoading ? 'Loading templates...' : '-- Select Degree --'),
                             degrees.map(function (deg) { return (React.createElement("option", { key: deg, value: deg, className: "bg-gray-900 text-white" }, deg)); })),
                         React.createElement(lucide_react_1.ChevronDown, { className: "absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 pointer-events-none z-20" })),
-                    React.createElement("button", { ref: loadButtonRef, onMouseMove: function (e) { return handleMouseMove(e.nativeEvent, setLoadButtonMousePosition, loadButtonRef); }, onMouseEnter: function () { return setIsLoadButtonHovering(true); }, onMouseLeave: function () { return setIsLoadButtonHovering(false); }, onClick: handleLoadTemplate, disabled: !selectedDegree || isLoading, className: "relative overflow-hidden w-full bg-emerald-600/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed hover-lift" },
+                    React.createElement("button", { ref: loadButtonRef, onMouseMove: function (e) { return handleMouseMove(e.nativeEvent, setLoadButtonMousePosition, loadButtonRef); }, onMouseEnter: function () { return setIsLoadButtonHovering(true); }, onMouseLeave: function () { return setIsLoadButtonHovering(false); }, onClick: handleLoadTemplate, disabled: !selectedDegree || isLoading, className: "relative overflow-hidden w-full bg-gray-400/20 text-white px-6 py-3 rounded-lg border hover:bg-gray-400 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed hover-lift" },
                         isLoadButtonHovering && !isLoading && (React.createElement("div", { className: "absolute inset-0 rounded-lg pointer-events-none smooth-transition", style: getGlassStyle(loadButtonMousePosition, isLoadButtonHovering), "aria-hidden": "true" })),
                         React.createElement("div", { className: "flex items-center justify-center relative z-10" },
                             React.createElement(lucide_react_1.Eye, { className: "w-5 h-5 mr-2" }),
@@ -578,7 +577,7 @@ function CreateCertificate(_a) {
                         React.createElement("div", { className: "flex items-center justify-center" },
                             React.createElement(lucide_react_1.ArrowLeft, { className: "w-5 h-5 mr-2" }),
                             "Back to Home")))))),
-        showForm && (React.createElement("div", { className: "min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4" },
+        showForm && (React.createElement("div", { className: "min-h-screen flex items-center justify-center bg-black p-4" },
             React.createElement("div", { className: "bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-stagger-1" },
                 React.createElement("div", { className: "text-center" },
                     React.createElement("h2", { className: "text-2xl font-light text-white mb-2 tracking-normal" }, "Certificate Details"),
@@ -598,7 +597,7 @@ function CreateCertificate(_a) {
                         React.createElement("input", { type: "date", name: "dateIssued", value: formData.dateIssued, onChange: handleInputChange, required: true, className: "w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/40" })),
                     React.createElement("div", { className: "flex space-x-4 pt-2" },
                         React.createElement("button", { type: "button", onClick: function () { return setShowForm(false); }, className: "flex-1 bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift" }, "Back"),
-                        React.createElement("button", { type: "submit", disabled: isLoading, className: "flex-1 bg-emerald-600/20 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed" }, isLoading ? 'Generating...' : 'Generate Certificate')))))),
+                        React.createElement("button", { type: "submit", disabled: isLoading, className: "flex-1 bg-gray-400/20 text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-gray-400 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed" }, isLoading ? 'Generating...' : 'Generate Certificate')))))),
         isDegreeSet && !showForm && (React.createElement("div", { className: "flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 min-h-screen" },
             React.createElement("div", { className: "w-full lg:w-80 bg-white/10 backdrop-blur-sm rounded-lg p-6 space-y-6 border border-white/20 animate-stagger-1" },
                 React.createElement("div", { className: "text-center" },

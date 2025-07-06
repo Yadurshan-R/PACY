@@ -646,7 +646,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
       `}</style>
 
       {!isDegreeSet && !showForm && (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-black p-4">
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-stagger-1">
           <div className="text-center">
             <h2 className="text-2xl font-light text-white mb-2 tracking-normal">
@@ -695,7 +695,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
               onMouseLeave={() => setIsLoadButtonHovering(false)}
               onClick={handleLoadTemplate}
               disabled={!selectedDegree || isLoading}
-              className="relative overflow-hidden w-full bg-emerald-600/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed hover-lift"
+              className="relative overflow-hidden w-full bg-gray-400/20 text-white px-6 py-3 rounded-lg border hover:bg-gray-400 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed hover-lift"
             >
               {isLoadButtonHovering && !isLoading && (
                 <div
@@ -724,9 +724,8 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
       </div>
     )}
 
-      {/* STEP 1: Form for certificate details */}
       {showForm && (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-black p-4">
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-stagger-1">
           <div className="text-center">
             <h2 className="text-2xl font-light text-white mb-2 tracking-normal">
@@ -794,7 +793,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-emerald-600/20 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gray-400/20 text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-gray-400 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Generating...' : 'Generate Certificate'}
               </button>

@@ -32,6 +32,14 @@ export async function POST(request: Request) {
       );
     }
 
+    if(user.walletAddress != walletAddress) {
+        return NextResponse.json(
+      {
+        message: "Wallet Address Mismatch."
+      },
+      { status: 409 })
+    }
+
     if(user.walletAddress) {
          return NextResponse.json(
       {

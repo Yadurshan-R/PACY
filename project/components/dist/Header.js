@@ -40,6 +40,7 @@ exports.__esModule = true;
 var react_1 = require("react");
 var lucide_react_1 = require("lucide-react");
 var react_2 = require("@meshsdk/react");
+var sonner_1 = require("sonner");
 function Header(_a) {
     var _this = this;
     var onWalletStatusChange = _a.onWalletStatusChange, walletAddress = _a.walletAddress, onBack = _a.onBack, currentView = _a.currentView;
@@ -146,14 +147,14 @@ function Header(_a) {
     react_1.useEffect(function () {
         function fetchAddresses() {
             return __awaiter(this, void 0, void 0, function () {
-                var used, walletAddress_1, userId, err_3;
+                var used, walletAddress_1, userId, response, errorData, err_3;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            if (!wallet) return [3 /*break*/, 5];
+                            if (!wallet) return [3 /*break*/, 9];
                             _a.label = 1;
                         case 1:
-                            _a.trys.push([1, 4, , 5]);
+                            _a.trys.push([1, 7, , 9]);
                             return [4 /*yield*/, wallet.getUsedAddresses()];
                         case 2:
                             used = _a.sent();
@@ -165,13 +166,29 @@ function Header(_a) {
                                     body: JSON.stringify({ userId: userId, walletAddress: walletAddress_1 })
                                 })];
                         case 3:
-                            _a.sent();
-                            return [3 /*break*/, 5];
+                            response = _a.sent();
+                            if (!!response.ok) return [3 /*break*/, 6];
+                            return [4 /*yield*/, response.json()];
                         case 4:
+                            errorData = _a.sent();
+                            console.warn("Server responded with error:", response.status, errorData);
+                            return [4 /*yield*/, handleDisconnect()];
+                        case 5:
+                            _a.sent();
+                            sonner_1.toast.error("Validation Error", {
+                                description: errorData.message || "Wallet validation failed.",
+                                duration: 6000
+                            });
+                            _a.label = 6;
+                        case 6: return [3 /*break*/, 9];
+                        case 7:
                             err_3 = _a.sent();
-                            console.warn('Error fetching addresses:', err_3);
-                            return [3 /*break*/, 5];
-                        case 5: return [2 /*return*/];
+                            console.warn("Error fetching addresses or sending request:", err_3);
+                            return [4 /*yield*/, handleDisconnect()];
+                        case 8:
+                            _a.sent();
+                            return [3 /*break*/, 9];
+                        case 9: return [2 /*return*/];
                     }
                 });
             });
