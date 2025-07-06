@@ -230,6 +230,9 @@ export function LoginForm({
         } else if (res.ok) {
           showSuccessToast();
           localStorage.setItem("userId", data.userID);
+          sessionStorage.setItem("orgName", data.orgName);
+          sessionStorage.setItem("logo", data.logo);
+          sessionStorage.setItem("email", data.email);
           console.log("Login successful ");
           router.push("/home");
         } else {
@@ -249,29 +252,53 @@ export function LoginForm({
     [router, validateForm, showErrorToast, showSuccessToast, showAuthErrorToast]
   );
 
-  const handleForgotPassword = () => {
-    // Optional validation logic before redirecting
-    console.log("Forgot Password clicked");
+  const handleForgotPassword = async () => {
+  console.log("Forgot Password clicked");
 
-    // Example: Check if the email field has a value
-    const emailValue = emailRef.current?.value;
-    if (!emailValue) {
-      toast.error("Missing Email", {
-        description:
-          "Please enter your email so we can help you reset your password.",
-      });
-      if (emailRef.current) {
-        emailRef.current.focus();
-      }
-      return;
+  const emailValue = emailRef.current?.value;
+  if (!emailValue) {
+    toast.error("Missing Email", {
+      description:
+        "Please enter your email so we can help you reset your password.",
+    });
+    if (emailRef.current) {
+      emailRef.current.focus();
     }
+    return;
+  }
 
-    // Optionally, store the email for pre-filling on the reset page
-    localStorage.setItem("resetEmail", emailValue);
+  try {
+    const res = await fetch("/api/auth/sign-in/forgotPassword", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailValue.trim() }),
+    });
 
-    // Redirect to forgot password page
-    router.push("/sign-in/forgot-password");
-  };
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success("OTP Sent", {
+        description:
+          "A one-time password has been sent to your email address.",
+      });
+
+      // Store email locally to pre-fill later if you like
+      sessionStorage.setItem("resetEmail", emailValue.trim());
+
+      // Redirect to the forgot password page
+      router.push("/sign-in/forgot-password");
+    } else {
+      toast.error("Request Failed", {
+        description: data?.message || "Unable to send reset email.",
+      });
+    }
+  } catch (error) {
+    console.error("Error sending reset OTP:", error);
+    toast.error("Unexpected Error", {
+      description: "Please try again later.",
+    });
+  }
+};
 
   const getGlassStyle = useMemo(() => {
     return (mousePos: MousePosition, isVisible: boolean) => {

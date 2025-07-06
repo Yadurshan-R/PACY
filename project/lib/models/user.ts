@@ -10,6 +10,9 @@ export interface IUser extends Document {
   password: string;
   flagFirstLogin: boolean;
   logo: string;  
+  walletAddress: string;
+  resetPasswordOTP: string;
+  resetPasswordOTPExpires: Date;
 }
 
 
@@ -21,7 +24,10 @@ const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   flagFirstLogin: { type: Boolean },
-  logo: { type: String, required: true }
+  logo: { type: String, required: true },
+  walletAddress: { type: String },
+  resetPasswordOTP: { type: String },
+  resetPasswordOTPExpires: { type: Date },
 });
 
 

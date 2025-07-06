@@ -28,20 +28,31 @@ export function ForgotPasswordForm({
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState<MousePosition>({
+    x: 0,
+    y: 0,
+  });
   const [isHovering, setIsHovering] = useState(false);
-  const [cancelMousePosition, setCancelMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [cancelMousePosition, setCancelMousePosition] = useState<MousePosition>(
+    { x: 0, y: 0 }
+  );
   const [isCancelHovering, setIsCancelHovering] = useState(false);
-  const [otpMousePosition, setOtpMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
-  const [isOtpHovering, setIsOtpHovering] = useState(false);
-  const [newPasswordMousePosition, setNewPasswordMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [newPasswordMousePosition, setNewPasswordMousePosition] =
+    useState<MousePosition>({ x: 0, y: 0 });
   const [isNewPasswordHovering, setIsNewPasswordHovering] = useState(false);
-  const [confirmPasswordMousePosition, setConfirmPasswordMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
-  const [isConfirmPasswordHovering, setIsConfirmPasswordHovering] = useState(false);
+  const [confirmPasswordMousePosition, setConfirmPasswordMousePosition] =
+    useState<MousePosition>({ x: 0, y: 0 });
+  const [isConfirmPasswordHovering, setIsConfirmPasswordHovering] =
+    useState(false);
+  const [otpMousePosition, setOtpMousePosition] = useState<MousePosition>({
+    x: 0,
+    y: 0,
+  });
+  const [isOtpHovering, setIsOtpHovering] = useState(false);
 
+  const otpRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const otpRef = useRef<HTMLDivElement>(null);
   const newPasswordRef = useRef<HTMLDivElement>(null);
   const confirmPasswordRef = useRef<HTMLDivElement>(null);
 
@@ -63,39 +74,49 @@ export function ForgotPasswordForm({
   );
 
   useEffect(() => {
+      
     const elements = {
       container: containerRef.current,
       cancel: cancelRef.current,
-      otp: otpRef.current,
       newPassword: newPasswordRef.current,
       confirmPassword: confirmPasswordRef.current,
+      otp: otpRef.current,
     };
 
     const handlers = {
       container: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setMousePosition, containerRef),
+        mousemove: (e: MouseEvent) =>
+          handleMouseMove(e, setMousePosition, containerRef),
         mouseenter: () => setIsHovering(true),
         mouseleave: () => setIsHovering(false),
       },
       cancel: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setCancelMousePosition, cancelRef),
+        mousemove: (e: MouseEvent) =>
+          handleMouseMove(e, setCancelMousePosition, cancelRef),
         mouseenter: () => setIsCancelHovering(true),
         mouseleave: () => setIsCancelHovering(false),
       },
-      otp: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setOtpMousePosition, otpRef),
-        mouseenter: () => setIsOtpHovering(true),
-        mouseleave: () => setIsOtpHovering(false),
-      },
       newPassword: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setNewPasswordMousePosition, newPasswordRef),
+        mousemove: (e: MouseEvent) =>
+          handleMouseMove(e, setNewPasswordMousePosition, newPasswordRef),
         mouseenter: () => setIsNewPasswordHovering(true),
         mouseleave: () => setIsNewPasswordHovering(false),
       },
       confirmPassword: {
-        mousemove: (e: MouseEvent) => handleMouseMove(e, setConfirmPasswordMousePosition, confirmPasswordRef),
+        mousemove: (e: MouseEvent) =>
+          handleMouseMove(
+            e,
+            setConfirmPasswordMousePosition,
+            confirmPasswordRef
+          ),
         mouseenter: () => setIsConfirmPasswordHovering(true),
         mouseleave: () => setIsConfirmPasswordHovering(false),
+      },
+      otp: {
+        mousemove: (e: MouseEvent) =>
+          handleMouseMove(e, setOtpMousePosition, otpRef),
+        mouseenter: () => setIsOtpHovering(true),
+        mouseleave: () => setIsOtpHovering(false),
       },
     };
 
@@ -103,9 +124,12 @@ export function ForgotPasswordForm({
       if (element) {
         const elementHandlers = handlers[key as keyof typeof handlers];
         Object.entries(elementHandlers).forEach(([event, handler]) => {
-          element.addEventListener(event, handler as EventListener, { passive: true });
+          element.addEventListener(event, handler as EventListener, {
+            passive: true,
+          });
         });
       }
+      
     });
 
     return () => {
@@ -130,11 +154,6 @@ export function ForgotPasswordForm({
       errors.push({
         field: "otp",
         message: "OTP is required",
-      });
-    } else if (!/^\d{6}$/.test(otp)) {
-      errors.push({
-        field: "otp",
-        message: "OTP must be a 6-digit number",
       });
     }
 
@@ -176,7 +195,9 @@ export function ForgotPasswordForm({
     let message = firstError.message;
 
     if (remainingCount > 0) {
-      message = `${firstError.message} (${remainingCount} more issue${remainingCount > 1 ? "s" : ""} found)`;
+      message = `${firstError.message} (${remainingCount} more issue${
+        remainingCount > 1 ? "s" : ""
+      } found)`;
     }
 
     toast.error("Validation Error", {
@@ -211,44 +232,64 @@ export function ForgotPasswordForm({
       if (validationErrors.length > 0) {
         showErrorToast(validationErrors);
         const firstErrorField = validationErrors[0].field;
-        if (firstErrorField === "otp" && otpRef.current?.querySelector("input")) {
+
+        if (
+          firstErrorField === "otp" &&
+          otpRef.current?.querySelector("input")
+        ) {
           (otpRef.current.querySelector("input") as HTMLInputElement).focus();
-        } else if (firstErrorField === "newPassword" && newPasswordRef.current?.querySelector("input")) {
-          (newPasswordRef.current.querySelector("input") as HTMLInputElement).focus();
-        } else if (firstErrorField === "confirmPassword" && confirmPasswordRef.current?.querySelector("input")) {
-          (confirmPasswordRef.current.querySelector("input") as HTMLInputElement).focus();
+        } else if (
+          firstErrorField === "newPassword" &&
+          newPasswordRef.current?.querySelector("input")
+        ) {
+          (
+            newPasswordRef.current.querySelector("input") as HTMLInputElement
+          ).focus();
+        } else if (
+          firstErrorField === "confirmPassword" &&
+          confirmPasswordRef.current?.querySelector("input")
+        ) {
+          (
+            confirmPasswordRef.current.querySelector(
+              "input"
+            ) as HTMLInputElement
+          ).focus();
         }
         return;
       }
 
       setIsLoading(true);
       try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-          console.error("User ID not found in localStorage!");
-          throw new Error("User ID not found.");
-        }
-        const otp = formData.get("otp") as string;
-        const newPassword = formData.get("confirmPassword") as string;
+        const email = sessionStorage.getItem("resetEmail");
+      if (!email) {
+        throw new Error("Email not found in localStorage.");
+      }
 
-        const res = await fetch("/api/auth/sign-in/changePassword", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, otp, newPassword }),
-        });
+      const otp = formData.get("otp") as string;
+      const newPassword = formData.get("newPassword") as string;
+
+        const res = await fetch("/api/auth/sign-in/changeForgotPassword", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp, newPassword }),
+      });
 
         const data = await res.json();
 
         if (res.ok) {
           showSuccessToast();
           console.log("Password reset successful");
+          sessionStorage.removeItem("resetEmail");
           router.push("/sign-in");
         } else {
           showAuthErrorToast(data.heading, data.message);
           console.error("Password reset failed:", data.message);
         }
       } catch (error) {
-        showAuthErrorToast("Internal Server Error", "An unexpected error occurred. Please try again later.");
+        showAuthErrorToast(
+          "Internal Server Error",
+          "An unexpected error occurred. Please try again later."
+        );
         console.error("Password reset failed:", error);
       } finally {
         setIsLoading(false);
@@ -262,15 +303,20 @@ export function ForgotPasswordForm({
       if (!isVisible) return {};
       return {
         background: `
-          radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${mousePos.y}px, 
+          radial-gradient(ellipse 100px 60px at ${mousePos.x}px ${
+          mousePos.y
+        }px, 
             rgba(255,255,255,0.18) 0%, 
             rgba(255,255,255,0.08) 30%, 
             rgba(255,255,255,0.04) 50%, 
             transparent 70%),
-          radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${mousePos.y - 10}px, 
+          radial-gradient(ellipse 50px 30px at ${mousePos.x - 15}px ${
+          mousePos.y - 10
+        }px, 
             rgba(255,255,255,0.22) 0%, 
             rgba(255,255,255,0.1) 40%, 
-            transparent 70%)`,
+            transparent 70%)
+        `,
         mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
         maskComposite: "xor" as const,
         WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
@@ -288,8 +334,8 @@ export function ForgotPasswordForm({
   const toggleConfirmPasswordVisibility = useCallback(() => {
     setShowConfirmPassword((prev) => !prev);
   }, []);
-  return (
 
+  return (
     <>
       <style jsx>{`
         @keyframes textGlow {
@@ -455,32 +501,33 @@ export function ForgotPasswordForm({
                   htmlFor="otp"
                   className="text-white text-sm font-medium smooth-transition"
                 >
-                  Enter the OTP
+                  Enter the OTP received
                 </Label>
-                <div className="relative">
+                <div ref={otpRef} className="relative">
                   <Input
-                    ref={otpRef}
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="\d*"
+                    autoComplete="one-time-code"
                     required
-                    aria-describedby="email-description"
-                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 h-12 px-4 no-outline"
+                    aria-describedby="otp-description"
+                    className="bg-transparent border border-white/20 focus:border-white/40 smooth-transition rounded-lg text-white placeholder:text-white/50 pr-12 h-12 px-4 no-outline"
                   />
-                  {isEmailHovering && (
+                  {isOtpHovering && (
                     <div
                       className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(emailMousePosition, isEmailHovering)}
+                      style={getGlassStyle(otpMousePosition, isOtpHovering)}
                       aria-hidden="true"
                     />
                   )}
                 </div>
-                <div id="email-description" className="sr-only">
-                  Enter your registered email address
+                <div id="otp-description" className="sr-only">
+                  Enter the one-time password sent to your email.
                 </div>
               </div>
-              
+
               <div className="grid gap-4 animate-stagger-2">
                 <Label
                   htmlFor="newPassword"

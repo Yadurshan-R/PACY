@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { ChevronDown, Wallet, Award, User, ExternalLink } from 'lucide-react';
-import ProfileDropdown from './ProfileDropdown';
-import { useWallet } from '@meshsdk/react';
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { ChevronDown, Wallet, Award, User, ExternalLink } from "lucide-react";
+import ProfileDropdown from "./ProfileDropdown";
+import { useWallet } from "@meshsdk/react";
 
 interface MousePosition {
   x: number;
@@ -17,20 +17,36 @@ interface HeaderProps {
   currentView?: 'home' | 'designer' | 'certificate';
 }
 
-export default function Header({ onWalletStatusChange, walletAddress, onBack, currentView }: HeaderProps) {
+export default function Header({
+  onWalletStatusChange,
+  walletAddress,
+  onBack,
+  currentView,
+}: HeaderProps) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [walletMousePosition, setWalletMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [walletMousePosition, setWalletMousePosition] = useState<MousePosition>(
+    { x: 0, y: 0 }
+  );
   const [isWalletHovering, setIsWalletHovering] = useState(false);
-  const [profileMousePosition, setProfileMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [profileMousePosition, setProfileMousePosition] =
+    useState<MousePosition>({ x: 0, y: 0 });
   const [isProfileHovering, setIsProfileHovering] = useState(false);
   const [showWalletPopup, setShowWalletPopup] = useState(false);
   const [isCheckingWallet, setIsCheckingWallet] = useState(false);
+  const [base64Image, setBase64Image] = useState<string | null>(null);
 
   const walletRef = useRef<HTMLButtonElement>(null);
   const profileRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { connected, wallet, connect, disconnect } = useWallet();
+
+  useEffect(() => {
+    const imageFromSession = sessionStorage.getItem("logo");
+    if (imageFromSession) {
+      setBase64Image(imageFromSession);
+    }
+  }, []);
 
   useEffect(() => {
     if (onWalletStatusChange) {
@@ -49,8 +65,8 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -79,37 +95,55 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
       }
       await handleConnect();
     } catch (err) {
-      console.error('Wallet error:', err);
+      console.error("Wallet error:", err);
     } finally {
       setIsCheckingWallet(false);
     }
   };
 
+
   const handleConnect = async () => {
     try {
-      await connect('lace');
-      console.log('Wallet connected successfully');
+      await connect("lace");
+      // const walletAddresses = await wallet.getUsedAddresses();
+      // const walletAddress = walletAddresses.length > 0 ? walletAddresses[0] : null;
+      // const userId = localStorage.getItem("userId");
+      // console.log("Vsdvsvsdv",walletAddress);
+      // await fetch("/api/auth/wallet", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify({ userId, walletAddress }),
+      //   });
+
+      console.log("Wallet connected successfully");
     } catch (err) {
-      console.error('Failed to connect wallet:', err);
+      console.error("Failed to connect wallet:", err);
     }
   };
 
   const handleDisconnect = async () => {
     try {
       await disconnect();
-      if (currentView !== 'designer') {
+      if (currentView !== "designer") {
         onBack();
       }
-      console.log('Wallet disconnected successfully');
+      console.log("Wallet disconnected successfully");
     } catch (err) {
-      console.error('Failed to disconnect wallet:', err);
+      console.error("Failed to disconnect wallet:", err);
     }
   };
 
-  const userProfile = { name: 'John Doe', email: 'john@example.com' };
+  const userProfile = {
+    name: sessionStorage.getItem("orgName"),
+    email: sessionStorage.getItem("email"),
+  };
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent, setter: (pos: MousePosition) => void, ref: React.RefObject<HTMLElement>) => {
+    (
+      e: MouseEvent,
+      setter: (pos: MousePosition) => void,
+      ref: React.RefObject<HTMLElement>
+    ) => {
       if (ref.current) {
         const rect = ref.current.getBoundingClientRect();
         setter({
@@ -118,7 +152,7 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
         });
       }
     },
-    [],
+    []
   );
 
   const getGlassStyle = useMemo(() => {
@@ -218,7 +252,13 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   ref={walletRef}
                   onClick={handleWalletAction}
                   disabled={isCheckingWallet}
-                  onMouseMove={(e) => handleMouseMove(e.nativeEvent, setWalletMousePosition, walletRef)}
+                  onMouseMove={(e) =>
+                    handleMouseMove(
+                      e.nativeEvent,
+                      setWalletMousePosition,
+                      walletRef
+                    )
+                  }
                   onMouseEnter={() => setIsWalletHovering(true)}
                   onMouseLeave={() => setIsWalletHovering(false)}
                   className={`relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border ${
@@ -230,13 +270,20 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   {isWalletHovering && (
                     <div
                       className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(walletMousePosition, isWalletHovering)}
+                      style={getGlassStyle(
+                        walletMousePosition,
+                        isWalletHovering
+                      )}
                       aria-hidden="true"
                     />
                   )}
                   <Wallet className="w-4 h-4 mr-2 relative z-10" />
                   <span className="relative z-10">
-                    {isCheckingWallet ? 'Checking...' : connected ? 'Disconnect' : 'Connect Wallet'}
+                    {isCheckingWallet
+                      ? "Checking..."
+                      : connected
+                      ? "Disconnect"
+                      : "Connect Wallet"}
                   </span>
                 </button>
 
@@ -249,9 +296,14 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                     <div className="p-4">
                       <div className="flex">
                         <div className="ml-3">
-                          <h3 className="text-lg font-medium text-white">Lace Wallet Required</h3>
+                          <h3 className="text-lg font-medium text-white">
+                            Lace Wallet Required
+                          </h3>
                           <div className="mt-1 text-sm text-white/80">
-                            <p>To connect your wallet, please install the Lace browser extension.</p>
+                            <p>
+                              To connect your wallet, please install the Lace
+                              browser extension.
+                            </p>
                           </div>
                           <div className="mt-4 flex">
                             <a
@@ -281,8 +333,16 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
               <div className="relative">
                 <button
                   ref={profileRef}
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  onMouseMove={(e) => handleMouseMove(e.nativeEvent, setProfileMousePosition, profileRef)}
+                  onClick={() =>
+                    setIsProfileDropdownOpen(!isProfileDropdownOpen)
+                  }
+                  onMouseMove={(e) =>
+                    handleMouseMove(
+                      e.nativeEvent,
+                      setProfileMousePosition,
+                      profileRef
+                    )
+                  }
                   onMouseEnter={() => setIsProfileHovering(true)}
                   onMouseLeave={() => setIsProfileHovering(false)}
                   className="relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 hover:border-white/40"
@@ -290,11 +350,30 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   {isProfileHovering && (
                     <div
                       className="absolute inset-0 rounded-full pointer-events-none smooth-transition"
-                      style={getGlassStyle(profileMousePosition, isProfileHovering)}
+                      style={getGlassStyle(
+                        profileMousePosition,
+                        isProfileHovering
+                      )}
                       aria-hidden="true"
                     />
                   )}
+<<<<<<< HEAD
                   <User className="w-6 h-6 relative z-10" />
+=======
+                  {base64Image ? (
+                            <img
+                              src={
+                                base64Image.startsWith("data:")
+                                  ? base64Image
+                                  : `data:image/png;base64,${base64Image}`
+                              }
+                              alt="Profile"
+                              className="w-8 h-8 rounded-full object-cover "
+                            />
+                          ) : (
+                            <User className="w-8 h-8 text-emerald-400" />
+                          )}
+>>>>>>> 8a1cdfc629a3a7c9138e1496c02e149c81922fd6
                 </button>
 
                 {isProfileDropdownOpen && (
@@ -304,6 +383,10 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   >
                     <div className="p-4">
                       <div className="flex items-start">
+<<<<<<< HEAD
+=======
+                        
+>>>>>>> 8a1cdfc629a3a7c9138e1496c02e149c81922fd6
                         <div className="ml-3 w-full">
                           <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
                           <p className="text-sm text-white/80">{userProfile.email}</p>
