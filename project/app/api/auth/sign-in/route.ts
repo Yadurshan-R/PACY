@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ heading: "Authentication Failed", message: "The password you entered is incorrect." }, { status: 401 });
     }
 
-    return NextResponse.json({ message: "Login successful", userID: user.id, flag: user.flagFirstLogin }, { status: 200 });
+    return NextResponse.json({ message: "Login successful", userID: user.id, flag: user.flagFirstLogin, orgName: user.orgName, logo: user.logo, email: user.email }, { status: 200 });
 
   } catch (err) {
     console.error("Login error:", err);

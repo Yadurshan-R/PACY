@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { ChevronDown, Wallet, Award, User, ExternalLink } from 'lucide-react';
-import ProfileDropdown from './ProfileDropdown';
-import { useWallet } from '@meshsdk/react';
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { ChevronDown, Wallet, Award, User, ExternalLink } from "lucide-react";
+import ProfileDropdown from "./ProfileDropdown";
+import { useWallet } from "@meshsdk/react";
 
 interface MousePosition {
   x: number;
@@ -14,23 +14,39 @@ interface HeaderProps {
   onWalletStatusChange?: (isConnected: boolean) => void;
   walletAddress?: string | null;
   onBack: () => void;
-  currentView?: 'home' | 'designer' | 'certificate';  // Add this
+  currentView?: "home" | "designer" | "certificate"; // Add this
 }
 
-export default function Header({ onWalletStatusChange, walletAddress, onBack, currentView }: HeaderProps) {
+export default function Header({
+  onWalletStatusChange,
+  walletAddress,
+  onBack,
+  currentView,
+}: HeaderProps) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [walletMousePosition, setWalletMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [walletMousePosition, setWalletMousePosition] = useState<MousePosition>(
+    { x: 0, y: 0 }
+  );
   const [isWalletHovering, setIsWalletHovering] = useState(false);
-  const [profileMousePosition, setProfileMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [profileMousePosition, setProfileMousePosition] =
+    useState<MousePosition>({ x: 0, y: 0 });
   const [isProfileHovering, setIsProfileHovering] = useState(false);
   const [showWalletPopup, setShowWalletPopup] = useState(false);
   const [isCheckingWallet, setIsCheckingWallet] = useState(false);
+  const [base64Image, setBase64Image] = useState<string | null>(null);
 
   const walletRef = useRef<HTMLButtonElement>(null);
   const profileRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { connected, wallet, connect, disconnect } = useWallet();
+
+  useEffect(() => {
+    const imageFromSession = sessionStorage.getItem("logo");
+    if (imageFromSession) {
+      setBase64Image(imageFromSession);
+    }
+  }, []);
 
   useEffect(() => {
     if (onWalletStatusChange) {
@@ -41,19 +57,27 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
   // Close popups when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node) &&
-          walletRef.current && !walletRef.current.contains(event.target as Node)) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node) &&
+        walletRef.current &&
+        !walletRef.current.contains(event.target as Node)
+      ) {
         setShowWalletPopup(false);
       }
-      
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
-          profileRef.current && !profileRef.current.contains(event.target as Node)) {
+
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
         setIsProfileDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Close dropdown when popup opens and vice versa
@@ -78,43 +102,61 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
     setIsCheckingWallet(true);
     try {
       // Try to detect Lace wallet
-      if (typeof window !== 'undefined' && !window.cardano?.lace) {
+      if (typeof window !== "undefined" && !window.cardano?.lace) {
         setShowWalletPopup(true);
         return;
       }
       await handleConnect();
     } catch (err) {
-      console.error('Wallet error:', err);
+      console.error("Wallet error:", err);
     } finally {
       setIsCheckingWallet(false);
     }
   };
 
+
   const handleConnect = async () => {
     try {
-      await connect('lace');
-      console.log('Wallet connected successfully');
+      await connect("lace");
+      // const walletAddresses = await wallet.getUsedAddresses();
+      // const walletAddress = walletAddresses.length > 0 ? walletAddresses[0] : null;
+      // const userId = localStorage.getItem("userId");
+      // console.log("Vsdvsvsdv",walletAddress);
+      // await fetch("/api/auth/wallet", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify({ userId, walletAddress }),
+      //   });
+
+      console.log("Wallet connected successfully");
     } catch (err) {
-      console.error('Failed to connect wallet:', err);
+      console.error("Failed to connect wallet:", err);
     }
   };
 
   const handleDisconnect = async () => {
     try {
       await disconnect();
-      if (currentView !== 'designer') {
+      if (currentView !== "designer") {
         onBack();
       }
-      console.log('Wallet disconnected successfully');
+      console.log("Wallet disconnected successfully");
     } catch (err) {
-      console.error('Failed to disconnect wallet:', err);
+      console.error("Failed to disconnect wallet:", err);
     }
   };
 
-  const userProfile = { name: 'John Doe', email: 'john@example.com' };
+  const userProfile = {
+    name: sessionStorage.getItem("orgName"),
+    email: sessionStorage.getItem("email"),
+  };
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent, setter: (pos: MousePosition) => void, ref: React.RefObject<HTMLElement>) => {
+    (
+      e: MouseEvent,
+      setter: (pos: MousePosition) => void,
+      ref: React.RefObject<HTMLElement>
+    ) => {
       if (ref.current) {
         const rect = ref.current.getBoundingClientRect();
         setter({
@@ -123,7 +165,7 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
         });
       }
     },
-    [],
+    []
   );
 
   const getGlassStyle = useMemo(() => {
@@ -136,7 +178,9 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
             rgba(255,255,255,0.08) 30%, 
             rgba(255,255,255,0.03) 50%,
             transparent 70%),
-          radial-gradient(ellipse 40px 25px at ${mousePos.x - 10}px ${mousePos.y - 8}px, 
+          radial-gradient(ellipse 40px 25px at ${mousePos.x - 10}px ${
+          mousePos.y - 8
+        }px, 
             rgba(255,255,255,0.2) 0%, 
             rgba(255,255,255,0.1) 40%, 
             transparent 70%)
@@ -160,11 +204,17 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
           animation: fadeIn 0.2s ease-out;
         }
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-5px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
-      
+
       <header className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-md border-b border-white/10 text-white shadow-2xl z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -183,25 +233,38 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   ref={walletRef}
                   onClick={handleWalletAction}
                   disabled={isCheckingWallet}
-                  onMouseMove={(e) => handleMouseMove(e.nativeEvent, setWalletMousePosition, walletRef)}
+                  onMouseMove={(e) =>
+                    handleMouseMove(
+                      e.nativeEvent,
+                      setWalletMousePosition,
+                      walletRef
+                    )
+                  }
                   onMouseEnter={() => setIsWalletHovering(true)}
                   onMouseLeave={() => setIsWalletHovering(false)}
                   className={`relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border ${
                     connected
-                      ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/30 text-emerald-200'
-                      : 'bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-sm'
-                  } ${isCheckingWallet ? 'opacity-70 cursor-not-allowed' : ''}`}
+                      ? "bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/30 text-emerald-200"
+                      : "bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-sm"
+                  } ${isCheckingWallet ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
                   {isWalletHovering && (
                     <div
                       className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(walletMousePosition, isWalletHovering)}
+                      style={getGlassStyle(
+                        walletMousePosition,
+                        isWalletHovering
+                      )}
                       aria-hidden="true"
                     />
                   )}
                   <Wallet className="w-4 h-4 mr-2 relative z-10" />
                   <span className="relative z-10">
-                    {isCheckingWallet ? 'Checking...' : connected ? 'Disconnect' : 'Connect Wallet'}
+                    {isCheckingWallet
+                      ? "Checking..."
+                      : connected
+                      ? "Disconnect"
+                      : "Connect Wallet"}
                   </span>
                 </button>
 
@@ -217,9 +280,14 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                           <Wallet className="w-5 h-5 text-emerald-400" />
                         </div>
                         <div className="ml-3">
-                          <h3 className="text-lg font-medium text-white">Lace Wallet Required</h3>
+                          <h3 className="text-lg font-medium text-white">
+                            Lace Wallet Required
+                          </h3>
                           <div className="mt-1 text-sm text-white/80">
-                            <p>To connect your wallet, please install the Lace browser extension.</p>
+                            <p>
+                              To connect your wallet, please install the Lace
+                              browser extension.
+                            </p>
                           </div>
                           <div className="mt-4">
                             <a
@@ -249,8 +317,16 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
               <div className="relative">
                 <button
                   ref={profileRef}
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  onMouseMove={(e) => handleMouseMove(e.nativeEvent, setProfileMousePosition, profileRef)}
+                  onClick={() =>
+                    setIsProfileDropdownOpen(!isProfileDropdownOpen)
+                  }
+                  onMouseMove={(e) =>
+                    handleMouseMove(
+                      e.nativeEvent,
+                      setProfileMousePosition,
+                      profileRef
+                    )
+                  }
                   onMouseEnter={() => setIsProfileHovering(true)}
                   onMouseLeave={() => setIsProfileHovering(false)}
                   className="relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 backdrop-blur-sm"
@@ -258,29 +334,45 @@ export default function Header({ onWalletStatusChange, walletAddress, onBack, cu
                   {isProfileHovering && (
                     <div
                       className="absolute inset-0 rounded-full pointer-events-none smooth-transition"
-                      style={getGlassStyle(profileMousePosition, isProfileHovering)}
+                      style={getGlassStyle(
+                        profileMousePosition,
+                        isProfileHovering
+                      )}
                       aria-hidden="true"
                     />
                   )}
-                  <User className="w-6 h-6 relative z-10" />
-                  <ChevronDown className="ml-1 w-4 h-4 relative z-10" />
+                  {base64Image ? (
+                            <img
+                              src={
+                                base64Image.startsWith("data:")
+                                  ? base64Image
+                                  : `data:image/png;base64,${base64Image}`
+                              }
+                              alt="Profile"
+                              className="w-8 h-8 rounded-full object-cover "
+                            />
+                          ) : (
+                            <User className="w-8 h-8 text-emerald-400" />
+                          )}
                 </button>
 
                 {/* Profile Dropdown - matching popup style */}
                 {isProfileDropdownOpen && (
                   <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-lg border border-white/10 rounded-lg shadow-2xl z-[1000] animate-fade-in"
+                    className="absolute right-0 mt-2 bg-black/80 backdrop-blur-lg border border-white/10 rounded-lg shadow-2xl z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
                       <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5">
-                          <User className="w-5 h-5 text-emerald-400" />
-                        </div>
+                        
                         <div className="ml-3 w-full">
-                          <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
-                          <p className="text-sm text-white/80">{userProfile.email}</p>
-                          
+                          <h3 className="text-lg font-medium text-white">
+                            {userProfile.name}
+                          </h3>
+                          <p className="text-sm text-white/80">
+                            {userProfile.email}
+                          </p>
+
                           <div className="mt-4 pt-4 border-t border-white/10">
                             <button
                               onClick={() => {
