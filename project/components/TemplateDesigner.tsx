@@ -68,6 +68,11 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
             rgba(255,255,255,0.1) 40%, 
             transparent 70%)
         `,
+        mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        maskComposite: "xor" as const,
+        WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        WebkitMaskComposite: "xor" as const,
+        padding: "1px",
         filter: "blur(0.8px) contrast(1.1)",
       };
     };
@@ -89,17 +94,15 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
       // Calculate scale to fit display area
       const scaleX = MAX_DISPLAY_WIDTH / naturalWidth;
       const scaleY = MAX_DISPLAY_HEIGHT / naturalHeight;
-      const displayScale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 1
+      const displayScale = Math.min(scaleX, scaleY, 1);
 
       const displayWidth = naturalWidth * displayScale;
       const displayHeight = naturalHeight * displayScale;
 
-      // Set canvas display size (smaller)
       editor.canvas.setWidth(displayWidth);
       editor.canvas.setHeight(displayHeight);
       editor.canvas.clear();
 
-      // Add background image scaled for display
       const imgInstance = new fabric.Image(imgElement, {
         left: 0,
         top: 0,
@@ -194,40 +197,36 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
     return (
       <>
         <style jsx>{`
-          @keyframes textGlow {
-            0%, 100% { text-shadow: 0 0 0px rgba(255,255,255,0); }
-            50% { text-shadow: 0 0 20px rgba(255,255,255,0.1); }
-          }
           @keyframes slideUp {
-            0% { 
-              opacity: 0; 
+            0% {
+              opacity: 0;
               transform: translateY(30px) scale(0.95);
             }
-            100% { 
-              opacity: 1; 
+            100% {
+              opacity: 1;
               transform: translateY(0) scale(1);
             }
           }
           @keyframes slideUpStaggered {
-            0% { 
-              opacity: 0; 
+            0% {
+              opacity: 0;
               transform: translateY(20px);
             }
-            100% { 
-              opacity: 1; 
+            100% {
+              opacity: 1;
               transform: translateY(0);
             }
           }
-          @keyframes pulseGlow {
-            0%, 100% { 
-              box-shadow: 0 0 0 rgba(139, 92, 246, 0);
+          @keyframes gentleBounce {
+            0%, 100% {
+              transform: translateY(0);
             }
-            50% { 
-              box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+            50% {
+              transform: translateY(-2px);
             }
           }
           .animate-fade-in {
-            animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
           .animate-stagger-1 {
             animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
@@ -235,35 +234,38 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
           .animate-stagger-2 {
             animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
           }
-          .animate-stagger-3 {
-            animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+          .smooth-transition {
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           }
           .hover-lift:hover {
-            transform: translateY(-2px);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(-1px);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           }
-          .smooth-transition {
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-          .pulse-glow {
-            animation: pulseGlow 3s ease-in-out infinite;
+          @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in,
+            .animate-stagger-1,
+            .animate-stagger-2,
+            .gentle-bounce {
+              animation: none;
+              opacity: 1;
+              transform: none;
+            }
+            .smooth-transition,
+            .hover-lift:hover {
+              transition: none;
+            }
           }
         `}</style>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-4">
-          <div className="bg-white/10 backdrop-blur-md shadow-2xl rounded-xl p-8 max-w-md w-full space-y-6 border border-white/20 animate-fade-in">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-fade-in">
             <div className="text-center animate-stagger-1">
-              <div className="w-16 h-16 bg-purple-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-400/30">
-                <Sparkles className="w-8 h-8 text-purple-400" />
+              <div className="w-16 h-16 bg-emerald-600/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                <Sparkles className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2
-                className="text-2xl font-light text-white mb-2 tracking-wide"
-                style={{
-                  animation: "textGlow 6s ease-in-out infinite",
-                }}
-              >
+              <h2 className="text-2xl font-light text-white mb-2 tracking-normal">
                 Create Template
               </h2>
-              <p className="text-white/60 text-sm">Design a new certificate template from scratch</p>
+              <p className="text-white/70 text-sm">Design a new certificate template from scratch</p>
             </div>
 
             <div className="space-y-4 animate-stagger-2">
@@ -299,7 +301,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
                   if (degreeName.trim()) setIsDegreeSet(true);
                 }}
                 disabled={!degreeName.trim()}
-                className="relative overflow-hidden w-full bg-purple-600/20 backdrop-blur-md text-white px-6 py-3 rounded-lg border border-purple-400/30 hover:bg-purple-600/30 hover:border-purple-400/50 smooth-transition disabled:opacity-50 disabled:cursor-not-allowed hover-lift pulse-glow animate-stagger-3"
+                className="relative overflow-hidden w-full bg-emerald-600/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 smooth-transition disabled:opacity-50 disabled:cursor-not-allowed hover-lift"
               >
                 {isStartButtonHovering && degreeName.trim() && (
                   <div
@@ -315,7 +317,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
               </button>
               <button
                 onClick={onBack}
-                className="w-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 smooth-transition hover-lift"
+                className="w-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 smooth-transition hover-lift"
               >
                 <div className="flex items-center justify-center">
                   <ArrowLeft className="w-5 h-5 mr-2" />
@@ -332,30 +334,23 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
   return (
     <>
       <style jsx>{`
-        .smooth-transition {
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .hover-lift:hover {
-          transform: translateY(-2px);
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
         @keyframes slideInLeft {
-          0% { 
-            opacity: 0; 
+          0% {
+            opacity: 0;
             transform: translateX(-30px);
           }
-          100% { 
-            opacity: 1; 
+          100% {
+            opacity: 1;
             transform: translateX(0);
           }
         }
         @keyframes slideInRight {
-          0% { 
-            opacity: 0; 
+          0% {
+            opacity: 0;
             transform: translateX(30px);
           }
-          100% { 
-            opacity: 1; 
+          100% {
+            opacity: 1;
             transform: translateX(0);
           }
         }
@@ -365,45 +360,64 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
         .animate-slide-right {
           animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
         }
+        .smooth-transition {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hover-lift:hover {
+          transform: translateY(-1px);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-slide-left,
+          .animate-slide-right {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+          .smooth-transition,
+          .hover-lift:hover {
+            transition: none;
+          }
+        }
       `}</style>
-      <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 min-h-screen">
+      <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 min-h-screen">
         {/* Sidebar */}
-        <div className="w-full lg:w-80 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl p-6 space-y-6 border border-white/20 animate-slide-left">
+        <div className="w-full lg:w-80 bg-white/10 backdrop-blur-sm rounded-lg p-6 space-y-6 border border-white/20 animate-slide-left">
           <div className="text-center">
-            <div className="w-16 h-16 bg-purple-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-400/30">
-              <Palette className="w-8 h-8 text-purple-400" />
+            <div className="w-16 h-16 bg-emerald-600/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+              <Palette className="w-8 h-8 text-emerald-400" />
             </div>
-            <h2 className="text-xl font-light text-white mb-2 tracking-wide">Template Designer</h2>
+            <h2 className="text-xl font-light text-white mb-2 tracking-normal">Template Designer</h2>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <p className="text-sm text-white/60 mb-1">Creating Template</p>
-              <p className="text-purple-400 font-medium">{degreeName}</p>
+              <p className="text-sm text-white/70 mb-1">Creating Template</p>
+              <p className="text-emerald-400 font-medium">{degreeName}</p>
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
             <h3 className="text-white font-medium mb-3 flex items-center">
-              <Type className="w-4 h-4 mr-2 text-purple-400" />
+              <Type className="w-4 h-4 mr-2 text-emerald-400" />
               Add Elements
             </h3>
             <div className="space-y-2">
               <button
                 onClick={() => addTextField('Certificate Title')}
-                className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 smooth-transition hover-lift text-sm"
+                className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 smooth-transition hover-lift text-sm"
               >
                 <Type className="w-4 h-4 mr-2 inline" /> Title
               </button>
               <button
                 onClick={() => addTextField('Text Field')}
-                className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 smooth-transition hover-lift text-sm"
+                className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 smooth-transition hover-lift text-sm"
               >
                 <Type className="w-4 h-4 mr-2 inline" /> Text Field
               </button>
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
             <h3 className="text-white font-medium mb-3 flex items-center">
-              <UploadCloud className="w-4 h-4 mr-2 text-purple-400" />
+              <UploadCloud className="w-4 h-4 mr-2 text-emerald-400" />
               Background Image
             </h3>
             <div
@@ -412,7 +426,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
               onMouseEnter={() => setIsUploadHovering(true)}
               onMouseLeave={() => setIsUploadHovering(false)}
               {...getRootProps()}
-              className="relative overflow-hidden flex flex-col items-center justify-center w-full p-4 border-2 border-dashed border-white/30 rounded-lg cursor-pointer hover:border-purple-400/50 hover:bg-white/5 text-center smooth-transition"
+              className="relative overflow-hidden flex flex-col items-center justify-center w-full p-4 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-white/40 hover:bg-white/5 text-center smooth-transition"
             >
               {isUploadHovering && (
                 <div
@@ -435,7 +449,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
                 setIsDegreeSet(false);
                 setTemplate(null);
               }}
-              className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
+              className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
             >
               <div className="flex items-center justify-center">
                 <RotateCcw className="w-4 h-4 mr-2" />
@@ -452,7 +466,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
                   }
                 }
               }}
-              className="w-full bg-red-500/20 backdrop-blur-md text-white px-4 py-2 rounded-lg border border-red-400/30 hover:bg-red-500/30 hover:border-red-400/50 smooth-transition hover-lift"
+              className="w-full bg-red-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-red-500/30 hover:border-white/40 smooth-transition hover-lift"
             >
               <Trash2 className="w-4 h-4 mr-2 inline" />
               Delete Selected
@@ -460,7 +474,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
 
             <button
               onClick={saveTemplateToServer}
-              className="w-full bg-emerald-600/20 backdrop-blur-md text-white px-4 py-2 rounded-lg border border-emerald-400/30 hover:bg-emerald-600/30 hover:border-emerald-400/50 smooth-transition hover-lift"
+              className="w-full bg-emerald-600/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 smooth-transition hover-lift"
             >
               <Save className="w-4 h-4 mr-2 inline" />
               Save Template
@@ -468,7 +482,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
 
             <button
               onClick={onBack}
-              className="w-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 smooth-transition hover-lift"
+              className="w-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 smooth-transition hover-lift"
             >
               <div className="flex items-center justify-center">
                 <ArrowLeft className="w-5 h-5 mr-2" />
@@ -479,16 +493,16 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl p-6 border border-white/20 animate-slide-right">
+        <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 animate-slide-right">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-light text-white tracking-wide">Design Canvas</h2>
-              <p className="text-white/60 text-sm mt-1">Template: {degreeName}</p>
+              <h2 className="text-xl font-light text-white tracking-normal">Design Canvas</h2>
+              <p className="text-white/70 text-sm mt-1">Template: {degreeName}</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
-                <span className="text-purple-400 text-sm font-medium">Live Design</span>
+                <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-emerald-400 text-sm font-medium">Live Design</span>
               </div>
             </div>
           </div>
@@ -498,7 +512,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
             onMouseMove={(e) => handleMouseMove(e.nativeEvent, setCanvasMousePosition, canvasRef)}
             onMouseEnter={() => setIsCanvasHovering(true)}
             onMouseLeave={() => setIsCanvasHovering(false)}
-            className="relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg p-4 smooth-transition hover:border-white/30"
+            className="relative overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 smooth-transition hover:border-white/40 hover-lift"
           >
             {isCanvasHovering && (
               <div

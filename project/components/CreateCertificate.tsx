@@ -122,6 +122,11 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
             rgba(255,255,255,0.1) 40%, 
             transparent 70%)
         `,
+        mask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        maskComposite: "xor" as const,
+        WebkitMask: `linear-gradient(white, white) content-box, linear-gradient(white, white)`,
+        WebkitMaskComposite: "xor" as const,
+        padding: "1px",
         filter: "blur(0.8px) contrast(1.1)",
       };
     };
@@ -154,7 +159,6 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
     onDragLeave: undefined
   });
 
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -173,111 +177,109 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
     setShowForm(true);
   };
 
-const loadTemplate = async () => {
-  setIsLoading(true);
-  try {
-    const res = await fetch(`/api/${localStorage.getItem("userId")}/template/${encodeURIComponent(selectedDegree)}`);
-    if (!res.ok) {
-      throw new Error('Template not found');
-    }
-    const data = await res.json();
-    setTemplate(data.backgroundImage || null);
-    
-    // Process elements to identify placeholders
-    const processedElements = data.elements.map((el: TemplateElement) => {
-      let isPlaceholder = false;
-      let placeholderType: 'username' | 'nic' | 'degree' | 'date' | 'custom' | undefined;
-      
-      if (el.content.includes('{{username}}')) {
-        isPlaceholder = true;
-        placeholderType = 'username';
-        el.content = formData.username;
-      } else if (el.content.includes('{{nic}}')) {
-        isPlaceholder = true;
-        placeholderType = 'nic';
-        el.content = formData.nic;
-      } else if (el.content.includes('{{degree}}')) {
-        isPlaceholder = true;
-        placeholderType = 'degree';
-        el.content = formData.degree;
-      } else if (el.content.includes('{{date}}')) {
-        isPlaceholder = true;
-        placeholderType = 'date';
-        el.content = formData.dateIssued;
-      } else if (el.content.includes('{{')) {
-        // Custom placeholder
-        isPlaceholder = true;
-        placeholderType = 'custom';
+  const loadTemplate = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/${localStorage.getItem("userId")}/template/${encodeURIComponent(selectedDegree)}`);
+      if (!res.ok) {
+        throw new Error('Template not found');
       }
+      const data = await res.json();
+      setTemplate(data.backgroundImage || null);
       
-      return {
-        ...el,
-        isPlaceholder,
-        placeholderType,
-        editable: true,
-        selectable: true
+      const processedElements = data.elements.map((el: TemplateElement) => {
+        let isPlaceholder = false;
+        let placeholderType: 'username' | 'nic' | 'degree' | 'date' | 'custom' | undefined;
+        
+        if (el.content.includes('{{username}}')) {
+          isPlaceholder = true;
+          placeholderType = 'username';
+          el.content = formData.username;
+        } else if (el.content.includes('{{nic}}')) {
+          isPlaceholder = true;
+          placeholderType = 'nic';
+          el.content = formData.nic;
+        } else if (el.content.includes('{{degree}}')) {
+          isPlaceholder = true;
+          placeholderType = 'degree';
+          el.content = formData.degree;
+        } else if (el.content.includes('{{date}}')) {
+          isPlaceholder = true;
+          placeholderType = 'date';
+          el.content = formData.dateIssued;
+        } else if (el.content.includes('{{')) {
+          isPlaceholder = true;
+          placeholderType = 'custom';
+        }
+        
+        return {
+          ...el,
+          isPlaceholder,
+          placeholderType,
+          editable: true,
+          selectable: true
+        };
+      });
+      
+      setElements(processedElements || []);
+      setIsDegreeSet(true);
+      setShowForm(false);
+      
+      const img = new Image();
+      img.onload = () => {
+        setOriginalSize({ width: img.width, height: img.height });
       };
-    });
-    
-    setElements(processedElements || []);
-    setIsDegreeSet(true);
-    setShowForm(false);
-    
-    // Store original image size
-    const img = new Image();
-    img.onload = () => {
-      setOriginalSize({ width: img.width, height: img.height });
-    };
-    img.src = data.backgroundImage;
-  } catch (error) {
-    console.error('Error loading template:', error);
-    alert('Template not found');
-  } finally {
-    setIsLoading(false);
-  }
-};
-const getDropdownPosition = useCallback(() => {
-  if (!activeTextObject || !editor?.canvas || !canvasRef.current) return { top: 0, left: 0 };
-
-  const canvasRect = canvasRef.current.getBoundingClientRect();
-  const textCoords = activeTextObject.calcTransformMatrix();
-  
-  const top = textCoords[5] + activeTextObject.getScaledHeight() + 100;
-  const left = textCoords[4];
-  
-  return { 
-    top: `${top}px`,
-    left: `${left}px`
+      img.src = data.backgroundImage;
+    } catch (error) {
+      console.error('Error loading template:', error);
+      alert('Template not found');
+    } finally {
+      setIsLoading(false);
+    }
   };
-}, [activeTextObject, editor]);
 
-const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custom', value?: string) => {
-  if (!activeTextObject || !editor?.canvas) return;
+  const getDropdownPosition = useCallback(() => {
+    if (!activeTextObject || !editor?.canvas || !canvasRef.current) return { top: 0, left: 0 };
 
-  let newText = '';
-  switch (type) {
-    case 'username':
-      newText = formData.username;
-      break;
-    case 'nic':
-      newText = formData.nic;
-      break;
-    case 'degree':
-      newText = formData.degree;
-      break;
-    case 'date':
-      newText = formData.dateIssued;
-      break;
-    case 'custom':
-      newText = value || customInputValue;
-      break;
-  }
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const textCoords = activeTextObject.calcTransformMatrix();
+    
+    const top = textCoords[5] + activeTextObject.getScaledHeight() + 100;
+    const left = textCoords[4];
+    
+    return { 
+      top: `${top}px`,
+      left: `${left}px`
+    };
+  }, [activeTextObject, editor]);
 
-  activeTextObject.set('text', newText);
-  editor.canvas.renderAll();
-  setShowInputDropdown(false);
-  activeTextObject.exitEditing();
-};
+  const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custom', value?: string) => {
+    if (!activeTextObject || !editor?.canvas) return;
+
+    let newText = '';
+    switch (type) {
+      case 'username':
+        newText = formData.username;
+        break;
+      case 'nic':
+        newText = formData.nic;
+        break;
+      case 'degree':
+        newText = formData.degree;
+        break;
+      case 'date':
+        newText = formData.dateIssued;
+        break;
+      case 'custom':
+        newText = value || customInputValue;
+        break;
+    }
+
+    activeTextObject.set('text', newText);
+    editor.canvas.renderAll();
+    setShowInputDropdown(false);
+    activeTextObject.exitEditing();
+  };
 
   useEffect(() => {
     if (!template || !editor?.canvas || !originalSize) return;
@@ -348,16 +350,18 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
               originalContent: element.content
             }
           });
-               iText.on('editing:entered', () => {
-          setActiveTextObject(iText);
-          setShowInputDropdown(true);
-          setCustomInputValue(iText.text || '');
-        });
+          
+          iText.on('editing:entered', () => {
+            setActiveTextObject(iText);
+            setShowInputDropdown(true);
+            setCustomInputValue(iText.text || '');
+          });
 
-        iText.on('editing:exited', () => {
-          setShowInputDropdown(false);
-          setActiveTextObject(null);
-        });
+          iText.on('editing:exited', () => {
+            setShowInputDropdown(false);
+            setActiveTextObject(null);
+          });
+          
           editor.canvas.add(iText);
         }
       });
@@ -402,103 +406,96 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
   };
 
   const placeQRCodeOnCanvas = async () => {
-  if (!editor || !editor.canvas || !txHash || !originalSize) return;
+    if (!editor || !editor.canvas || !txHash || !originalSize) return;
 
-  const verificationUrl = `${window.location.origin}/certificate/${txHash}`;
-  
-  // Create a temporary container for QR code rendering
-  const tempDiv = document.createElement('div');
-  tempDiv.style.position = 'absolute';
-  tempDiv.style.left = '-9999px';
-  document.body.appendChild(tempDiv);
+    const verificationUrl = `${window.location.origin}/certificate/${txHash}`;
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    document.body.appendChild(tempDiv);
 
-  // Render QR code to the temporary container
-  const root = createRoot(tempDiv);
-  root.render(
-    <div style={{ background: 'white', padding: '8px' }}>
-      <QRCode 
-        value={verificationUrl}
-        size={128}
-        level="H"
-        bgColor="#ffffff"
-        fgColor="#000000"
-      />
-    </div>
-  );
+    const root = createRoot(tempDiv);
+    root.render(
+      <div style={{ background: 'white', padding: '8px' }}>
+        <QRCode 
+          value={verificationUrl}
+          size={128}
+          level="H"
+          bgColor="#ffffff"
+          fgColor="#000000"
+        />
+      </div>
+    );
 
-  // Wait for rendering to complete
-  await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 50));
 
-  const svgElement = tempDiv.querySelector('svg');
-  if (!svgElement) {
+    const svgElement = tempDiv.querySelector('svg');
+    if (!svgElement) {
+      root.unmount();
+      document.body.removeChild(tempDiv);
+      return;
+    }
+
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgData], {type: 'image/svg+xml'});
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    const img = await new Promise<fabric.Image>((resolve, reject) => {
+      const imgElement = new Image();
+      
+      imgElement.onload = () => {
+        const imgInstance = new fabric.Image(imgElement, {
+          crossOrigin: 'anonymous'
+        });
+        resolve(imgInstance);
+      };
+      
+      imgElement.onerror = (err) => {
+        reject(err);
+      };
+      
+      imgElement.src = svgUrl;
+      imgElement.crossOrigin = 'anonymous';
+    });
+
+    const scaleX = editor.canvas.getWidth() / originalSize.width;
+    const scaleY = editor.canvas.getHeight() / originalSize.height;
+    const scale = Math.min(scaleX, scaleY);
+
+    const centerX = (editor.canvas.getWidth() - (img.width || 0) * 1) / 2;
+    const centerY = (editor.canvas.getHeight() - (img.height || 0) * 1) / 2;
+
+    img.set({
+      left: centerX,
+      top: centerY,
+      scaleX: scale,
+      scaleY: scale,
+      selectable: true,
+      hasControls: true,
+      lockRotation: true,
+      cornerSize: 8,
+      transparentCorners: false,
+      borderColor: 'blue',
+      cornerColor: 'blue',
+      name: 'verification-qr-code',
+      data: { isQRCode: true }
+    });
+
+    img.on('modified', () => {
+      setQrCodePlaced(true);
+    });
+
+    editor.canvas.add(img);
+    editor.canvas.renderAll();
+    setQrCodePlaced(true);
+    setShowQRCodeModal(false);
+
     root.unmount();
     document.body.removeChild(tempDiv);
-    return;
-  }
+    URL.revokeObjectURL(svgUrl);
+  };
 
-  // Convert SVG to data URL
-  const svgData = new XMLSerializer().serializeToString(svgElement);
-  const svgBlob = new Blob([svgData], {type: 'image/svg+xml'});
-  const svgUrl = URL.createObjectURL(svgBlob);
-
-  // Create fabric image using the correct initialization
-  const img = await new Promise<fabric.Image>((resolve, reject) => {
-    const imgElement = new Image();
-    
-    imgElement.onload = () => {
-      // Initialize fabric.Image with the loaded image element
-      const imgInstance = new fabric.Image(imgElement, {
-        crossOrigin: 'anonymous'
-      });
-      resolve(imgInstance);
-    };
-    
-    imgElement.onerror = (err) => {
-      reject(err);
-    };
-    
-    imgElement.src = svgUrl;
-    imgElement.crossOrigin = 'anonymous';
-  });
-
-  // Calculate scaling and position
-  const scaleX = editor.canvas.getWidth() / originalSize.width;
-  const scaleY = editor.canvas.getHeight() / originalSize.height;
-  const scale = Math.min(scaleX, scaleY);
-
-  const centerX = (editor.canvas.getWidth() - (img.width || 0) * 1) / 2;
-  const centerY = (editor.canvas.getHeight() - (img.height || 0) * 1) / 2;
-
-  img.set({
-    left: centerX,
-    top: centerY,
-    scaleX: scale,
-    scaleY: scale,
-    selectable: true,
-    hasControls: true,
-    lockRotation: true,
-    cornerSize: 8,
-    transparentCorners: false,
-    borderColor: 'blue',
-    cornerColor: 'blue',
-    name: 'verification-qr-code',
-    data: { isQRCode: true }
-  });
-
-  img.on('modified', () => {
-    setQrCodePlaced(true);
-  });
-
-  editor.canvas.add(img);
-  editor.canvas.renderAll();
-  setQrCodePlaced(true);
-  setShowQRCodeModal(false);
-
-  // Clean up
-  root.unmount();
-  document.body.removeChild(tempDiv);
-  URL.revokeObjectURL(svgUrl);
-};
   const downloadCanvasAsPDF = () => {
     if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
       alert('Please place the QR code on the certificate before exporting');
@@ -552,7 +549,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
     pdf.save(`${formData.username.replace(/\s+/g, '_')}_${selectedDegree.replace(/\s+/g, '_')}_certificate.pdf`);
 
     setExported(true);
-    setTimeout(() => onBack(), 1000); // Redirect to home after 1 second
+    setTimeout(() => onBack(), 1000);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -586,16 +583,77 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
     }
   };
 
-  // STEP 0: Degree selector
-  if (!isDegreeSet && !showForm) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4">
-        <div className="bg-white/10 backdrop-blur-md shadow-2xl rounded-xl p-8 max-w-md w-full space-y-6 border border-white/20">
+  return (
+    <>
+      <style jsx>{`
+        @keyframes slideUp {
+          0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @keyframes slideUpStaggered {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes gentleBounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-2px);
+          }
+        }
+        .animate-fade-in {
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-stagger-1 {
+          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+        }
+        .animate-stagger-2 {
+          animation: slideUpStaggered 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        }
+        .smooth-transition {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hover-lift:hover {
+          transform: translateY(-1px);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-fade-in,
+          .animate-stagger-1,
+          .animate-stagger-2,
+          .gentle-bounce {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+          .smooth-transition,
+          .hover-lift:hover {
+            transition: none;
+          }
+        }
+      `}</style>
+
+      {!isDegreeSet && !showForm && (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-stagger-1">
           <div className="text-center">
-            <h2 className="text-2xl font-light text-white mb-2 tracking-wide">
+            <h2 className="text-2xl font-light text-white mb-2 tracking-normal">
               Choose Degree Template
             </h2>
-            <p className="text-white/60 text-sm">Select a template to begin creating your certificate</p>
+            <p className="text-white/70 text-sm">Select a template to begin creating your certificate</p>
           </div>
 
           <div className="space-y-4">
@@ -608,7 +666,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
             >
               {isSelectorHovering && (
                 <div
-                  className="absolute inset-0 rounded-lg pointer-events-none"
+                  className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
                   style={getGlassStyle(selectorMousePosition, isSelectorHovering)}
                   aria-hidden="true"
                 />
@@ -619,11 +677,11 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
                 disabled={isLoading}
                 className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/40 appearance-none cursor-pointer disabled:opacity-50 relative z-10"
               >
-                <option value="" className="bg-slate-800 text-white">
+                <option value="" className="bg-gray-900 text-white">
                   {isLoading ? 'Loading templates...' : '-- Select Degree --'}
                 </option>
                 {degrees.map((deg) => (
-                  <option key={deg} value={deg} className="bg-slate-800 text-white">
+                  <option key={deg} value={deg} className="bg-gray-900 text-white">
                     {deg}
                   </option>
                 ))}
@@ -638,11 +696,11 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
               onMouseLeave={() => setIsLoadButtonHovering(false)}
               onClick={handleLoadTemplate}
               disabled={!selectedDegree || isLoading}
-              className="relative overflow-hidden w-full bg-blue-600/20 backdrop-blur-md text-white px-6 py-3 rounded-lg border border-blue-400/30 hover:bg-blue-600/30 hover:border-blue-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative overflow-hidden w-full bg-emerald-600/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed hover-lift"
             >
               {isLoadButtonHovering && !isLoading && (
                 <div
-                  className="absolute inset-0 rounded-lg pointer-events-none"
+                  className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
                   style={getGlassStyle(loadButtonMousePosition, isLoadButtonHovering)}
                   aria-hidden="true"
                 />
@@ -655,7 +713,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
 
             <button
               onClick={onBack}
-              className="w-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
+              className="w-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
             >
               <div className="flex items-center justify-center">
                 <ArrowLeft className="w-5 h-5 mr-2" />
@@ -665,19 +723,17 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
           </div>
         </div>
       </div>
-    );
-  }
+    )}
 
-  // STEP 1: Form for certificate details
-  if (showForm) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4">
-        <div className="bg-white/10 backdrop-blur-md shadow-2xl rounded-xl p-8 max-w-md w-full space-y-6 border border-white/20">
+      {/* STEP 1: Form for certificate details */}
+      {showForm && (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md w-full space-y-6 border border-white/20 animate-stagger-1">
           <div className="text-center">
-            <h2 className="text-2xl font-light text-white mb-2 tracking-wide">
+            <h2 className="text-2xl font-light text-white mb-2 tracking-normal">
               Certificate Details
             </h2>
-            <p className="text-white/60 text-sm">Fill in the details for your certificate</p>
+            <p className="text-white/70 text-sm">Fill in the details for your certificate</p>
           </div>
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -732,14 +788,14 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="flex-1 bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
+                className="flex-1 bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-blue-600/20 backdrop-blur-md text-white px-4 py-3 rounded-lg border border-blue-400/30 hover:bg-blue-600/30 hover:border-blue-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-emerald-600/20 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Generating...' : 'Generate Certificate'}
               </button>
@@ -747,39 +803,38 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
           </form>
         </div>
       </div>
-    );
-  }
+    )}
 
-  // STEP 2: Canvas preview screen
-  return (
-    <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 min-h-screen">
+  {/* STEP 2: Canvas preview screen */}
+  {isDegreeSet && !showForm && (
+    <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-black via-gray-900 to-gray-800 min-h-screen">
       {/* Sidebar */}
-      <div className="w-full lg:w-80 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl p-6 space-y-6 border border-white/20">
+      <div className="w-full lg:w-80 bg-white/10 backdrop-blur-sm rounded-lg p-6 space-y-6 border border-white/20 animate-stagger-1">
         <div className="text-center">
-          <div className="w-16 h-16 bg-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
-            <Palette className="w-8 h-8 text-blue-400" />
+          <div className="w-16 h-16 bg-emerald-600/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+            <Palette className="w-8 h-8 text-emerald-400" />
           </div>
-          <h2 className="text-xl font-light text-white mb-2 tracking-wide">Certificate Designer</h2>
+          <h2 className="text-xl font-light text-white mb-2 tracking-normal">Certificate Designer</h2>
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-            <p className="text-sm text-white/60 mb-1">Active Template</p>
-            <p className="text-blue-400 font-medium">{selectedDegree}</p>
+            <p className="text-sm text-white/70 mb-1">Active Template</p>
+            <p className="text-emerald-400 font-medium">{selectedDegree}</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
             <h3 className="text-white font-medium mb-2 flex items-center">
-              <Send className="w-4 h-4 mr-2 text-blue-400" />
+              <Send className="w-4 h-4 mr-2 text-emerald-400" />
               Blockchain Submission
             </h3>
-            <p className="text-white/60 text-sm mb-3">
+            <p className="text-white/70 text-sm mb-3">
               Submit the certificate details to the blockchain for permanent verification.
             </p>
             {!qrCodePlaced && (
             <button
               onClick={handleSubmitToBlockchain}
               disabled={isSubmitting || !connected}
-              className="w-full bg-purple-600/20 backdrop-blur-md text-white px-4 py-3 rounded-lg border border-purple-400/30 hover:bg-purple-600/30 hover:border-purple-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-purple-600/20 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-purple-600/30 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-center justify-center">
                 <Send className="w-4 h-4 mr-2" />
@@ -796,13 +851,13 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
 
           {/* QR Code Placement Modal */}
           {showQRCodeModal && (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-6 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-xl font-medium text-white mb-4 flex items-center">
-          <QrCode className="w-5 h-5 mr-2 text-blue-400" />
+          <QrCode className="w-5 h-5 mr-2 text-emerald-400" />
           Place Verification QR Code
         </h3>
-        <p className="text-white/80 mb-4">
+        <p className="text-white/70 mb-4">
           The QR code will be placed centered on your certificate. You can then drag it to the desired position.
         </p>
         
@@ -819,7 +874,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
         <div className="flex space-x-3">
           <button
             onClick={placeQRCodeOnCanvas}
-            className="flex-1 bg-blue-600/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            className="flex-1 bg-emerald-600/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 hover-lift"
           >
             Place QR Code on Certificate
           </button>
@@ -828,12 +883,12 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
     </div>
   )}
 
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
             <h3 className="text-white font-medium mb-2 flex items-center">
-              <Eye className="w-4 h-4 mr-2 text-blue-400" />
+              <Eye className="w-4 h-4 mr-2 text-emerald-400" />
               Canvas Controls
             </h3>
-            <p className="text-white/60 text-sm">
+            <p className="text-white/70 text-sm">
               The template is automatically loaded with all elements in their correct positions.
             </p>
           </div>
@@ -849,7 +904,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
               setElements([]);
               setShowForm(false);
             }}
-            className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
+            className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
           >
             <div className="flex items-center justify-center">
               <RotateCcw className="w-4 h-4 mr-2" />
@@ -861,18 +916,18 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
           <button
             onClick={downloadCanvasAsPDF}
             disabled={!qrCodePlaced || isLoading}
-            className={`w-full ${qrCodePlaced ? 'bg-green-600/20 hover:bg-green-600/30 border-green-400/30' : 'bg-gray-600/20 border-gray-400/30'} backdrop-blur-md text-white px-4 py-3 rounded-lg border hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-full ${qrCodePlaced ? 'bg-emerald-600/20 hover:bg-emerald-600/30' : 'bg-white/10'} backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:border-white/40 hover-lift disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <div className="flex items-center justify-center">
               <Download className="w-4 h-4 mr-2" />
               {qrCodePlaced ? 'Export as PDF' : 'Place QR Code First'}
             </div>
           </button>
-          {exported && (
+          {exported && !showQRCodeModal && (
 
           <button
             onClick={() => setShowForm(true)}
-            className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
+            className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
           >
             <div className="flex items-center justify-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -880,11 +935,11 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
             </div>
           </button>
           )}
-          {exported && (
+          {exported && !showQRCodeModal && (
 
           <button
             onClick={onBack}
-            className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30"
+            className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
           >
             <div className="flex items-center justify-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -896,11 +951,11 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
       </div>
 
       {/* Canvas Area */}
-      <div className="flex-1 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl p-6 border border-white/20 animate-slide-right">
+      <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 animate-stagger-2">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-light text-white tracking-wide">Certificate Preview</h2>
-            <p className="text-white/60 text-sm mt-1">Template: {selectedDegree}</p>
+            <h2 className="text-xl font-light text-white tracking-normal">Certificate Preview</h2>
+            <p className="text-white/70 text-sm mt-1">Template: {selectedDegree}</p>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
@@ -913,7 +968,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
           onMouseMove={(e) => handleMouseMove(e.nativeEvent, setCanvasMousePosition, canvasRef)}
           onMouseEnter={() => setIsCanvasHovering(true)}
           onMouseLeave={() => setIsCanvasHovering(false)}
-          className="relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg p-4 smooth-transition hover:border-white/30"
+          className="relative overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 smooth-transition hover:border-white/40 hover-lift"
         >
           {isCanvasHovering && (
             <div
@@ -929,29 +984,29 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
         {showInputDropdown && activeTextObject && (
           <div 
             ref={dropdownRef}
-            className="absolute z-50 bg-slate-800 rounded-lg shadow-lg border border-slate-700 mt-1"
+            className="absolute z-50 bg-gray-800 rounded-lg shadow-lg border border-white/20 mt-1"
             style={getDropdownPosition()}
           >
             <div 
-              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              className="px-4 py-2 hover:bg-gray-700 cursor-pointer border-b border-white/20"
               onClick={() => handleSelectInput('username')}
             >
               {formData.username}
             </div>
             <div 
-              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              className="px-4 py-2 hover:bg-gray-700 cursor-pointer border-b border-white/20"
               onClick={() => handleSelectInput('nic')}
             >
               {formData.nic}
             </div>
             <div 
-              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              className="px-4 py-2 hover:bg-gray-700 cursor-pointer border-b border-white/20"
               onClick={() => handleSelectInput('degree')}
             >
               {formData.degree}
             </div>
             <div 
-              className="px-4 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-700"
+              className="px-4 py-2 hover:bg-gray-700 cursor-pointer border-b border-white/20"
               onClick={() => handleSelectInput('date')}
             >
               {formData.dateIssued}
@@ -960,5 +1015,7 @@ const handleSelectInput = (type: 'username' | 'nic' | 'degree' | 'date' | 'custo
         )}
       </div>
     </div>
+      )}
+    </>
   );
 }
