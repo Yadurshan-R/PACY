@@ -295,7 +295,7 @@ export default function Header({
                 {showWalletPopup && (
                   <div
                     ref={popupRef}
-                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
+                    className="absolute right-0 mt-2 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
                       <div className="flex items-start">
@@ -383,7 +383,7 @@ export default function Header({
                 {isProfileDropdownOpen && (
                   <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
+                    className="absolute right-0 mt-2 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
                       <div className="flex items-start">
