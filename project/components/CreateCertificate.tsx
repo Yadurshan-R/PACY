@@ -890,7 +890,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
               The template is automatically loaded with all elements in their correct positions.
             </p>
           </div>
-          {exported && (
+          {!exported && !qrCodePlaced && (
           <button
             onClick={() => {
               if (editor?.canvas) {
@@ -921,8 +921,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
               {qrCodePlaced ? 'Export as PDF' : 'Place QR Code First'}
             </div>
           </button>
-          {exported && !showQRCodeModal && (
-
+          {!qrCodePlaced && !exported && (
           <button
             onClick={() => setShowForm(true)}
             className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"
@@ -933,8 +932,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
             </div>
           </button>
           )}
-          {exported && !showQRCodeModal && (
-
+          {!qrCodePlaced && !exported && (
           <button
             onClick={onBack}
             className="w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift"

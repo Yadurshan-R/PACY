@@ -634,7 +634,7 @@ function CreateCertificate(_a) {
                             React.createElement(lucide_react_1.Eye, { className: "w-4 h-4 mr-2 text-emerald-400" }),
                             "Canvas Controls"),
                         React.createElement("p", { className: "text-white/70 text-sm" }, "The template is automatically loaded with all elements in their correct positions.")),
-                    exported && (React.createElement("button", { onClick: function () {
+                    !exported && !qrCodePlaced && (React.createElement("button", { onClick: function () {
                             if (editor === null || editor === void 0 ? void 0 : editor.canvas) {
                                 editor.canvas.clear();
                             }
@@ -651,11 +651,11 @@ function CreateCertificate(_a) {
                         React.createElement("div", { className: "flex items-center justify-center" },
                             React.createElement(lucide_react_1.Download, { className: "w-4 h-4 mr-2" }),
                             qrCodePlaced ? 'Export as PDF' : 'Place QR Code First')),
-                    exported && !showQRCodeModal && (React.createElement("button", { onClick: function () { return setShowForm(true); }, className: "w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift" },
+                    !qrCodePlaced && !exported && (React.createElement("button", { onClick: function () { return setShowForm(true); }, className: "w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift" },
                         React.createElement("div", { className: "flex items-center justify-center" },
                             React.createElement(lucide_react_1.ArrowLeft, { className: "w-4 h-4 mr-2" }),
                             "Back to Form"))),
-                    exported && !showQRCodeModal && (React.createElement("button", { onClick: onBack, className: "w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift" },
+                    !qrCodePlaced && !exported && (React.createElement("button", { onClick: onBack, className: "w-full bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/40 hover-lift" },
                         React.createElement("div", { className: "flex items-center justify-center" },
                             React.createElement(lucide_react_1.ArrowLeft, { className: "w-4 h-4 mr-2" }),
                             "Back to Home"))))),
