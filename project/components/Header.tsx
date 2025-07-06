@@ -59,7 +59,7 @@ export default function Header({
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setShowWalletPopup(false);
       }
-
+      
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
       }
@@ -183,69 +183,73 @@ export default function Header({
   return (
     <>
       <style jsx>{`
-      @keyframes slideUp {
-        0% {
-          opacity: 0;
-          transform: translateY(30px) scale(0.95);
+        @keyframes slideUp {
+          0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
-        100% {
-          opacity: 1;
-          transform: translateY(0) scale(1);
+        @keyframes slideUpStaggered {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-      }
-      @keyframes slideUpStaggered {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
+        @keyframes gentleBounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-2px);
+          }
         }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
+        .animate-fade-in {
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-      }
-      @keyframes gentleBounce {
-        0%, 100% {
-          transform: translateY(0);
+        .smooth-transition {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        50% {
-          transform: translateY(-2px);
-        }
-      }
-      .animate-fade-in {
-        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-      .smooth-transition {
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .hover-lift:hover {
-        transform: translateY(-1px);
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .gentle-bounce {
-        animation: gentleBounce 3s ease-in-out infinite;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .animate-fade-in,
-        .gentle-bounce {
-          animation: none;
-          opacity: 1;
-          transform: none;
-        }
-        .smooth-transition,
         .hover-lift:hover {
-          transition: none;
+          transform: translateY(-1px);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-      }
-    `}</style>
-
+        .gentle-bounce {
+          animation: gentleBounce 3s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-fade-in,
+          .gentle-bounce {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+          .smooth-transition,
+          .hover-lift:hover {
+            transition: none;
+          }
+        }
+      `}</style>
+      
       <header className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-sm border-b border-white/20 text-white z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-
+            {/* Logo */}
             <div className="flex items-center">
-              <span className="text-2xl font-light tracking-wide">Certara</span>
+              <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mr-3 border border-white/20 hover-lift">
+                <Award className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-light tracking-wide">Certara</span>
             </div>
 
+            {/* Wallet + Profile */}
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <button
@@ -261,10 +265,11 @@ export default function Header({
                   }
                   onMouseEnter={() => setIsWalletHovering(true)}
                   onMouseLeave={() => setIsWalletHovering(false)}
-                  className={`relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border ${connected
+                  className={`relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border ${
+                    connected
                       ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-white/20 hover:border-white/40 text-white'
                       : 'bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40 text-white'
-                    } ${isCheckingWallet ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  } ${isCheckingWallet ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isWalletHovering && (
                     <div
@@ -281,8 +286,8 @@ export default function Header({
                     {isCheckingWallet
                       ? "Checking..."
                       : connected
-                        ? "Disconnect"
-                        : "Connect Wallet"}
+                      ? "Disconnect"
+                      : "Connect Wallet"}
                   </span>
                 </button>
 
@@ -293,7 +298,10 @@ export default function Header({
                     className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
                   >
                     <div className="p-4">
-                      <div className="flex">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 pt-0.5">
+                          <Wallet className="w-5 h-5 text-emerald-400" />
+                        </div>
                         <div className="ml-3">
                           <h3 className="text-lg font-medium text-white">
                             Lace Wallet Required
@@ -304,7 +312,7 @@ export default function Header({
                               browser extension.
                             </p>
                           </div>
-                          <div className="mt-4 flex">
+                          <div className="mt-4">
                             <a
                               href="https://www.lace.io/"
                               target="_blank"
@@ -356,9 +364,6 @@ export default function Header({
                       aria-hidden="true"
                     />
                   )}
-<<<<<<< HEAD
-  <User className="w-6 h-6 relative z-10" />
-=======
                   {base64Image ? (
                             <img
                               src={
@@ -372,47 +377,42 @@ export default function Header({
                           ) : (
                             <User className="w-8 h-8 text-emerald-400" />
                           )}
->>>>>>> 8a1cdfc629a3a7c9138e1496c02e149c81922fd6
-                </button >
+                </button>
 
-    { isProfileDropdownOpen && (
-      <div
-        ref={dropdownRef}
-        className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
-      >
-        <div className="p-4">
-          <div className="flex items-start">
-<<<<<<< HEAD
-=======
-
->>>>>>> 8a1cdfc629a3a7c9138e1496c02e149c81922fd6
-  <div className="ml-3 w-full">
-    <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
-    <p className="text-sm text-white/80">{userProfile.email}</p>
-
-    <div className="mt-4 pt-4 border-t border-white/20">
-      <button
-        onClick={() => {
-          setIsProfileDropdownOpen(false);
-          localStorage.clear();
-        }}
-        className="w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition"
-      >
-        Sign Out
-      </button>
-    </div>
-  </div>
-                      </div >
-                    </div >
-                  </div >
-                )
-}
-              </div >
-            </div >
-          </div >
-        </div >
-      </header >
+                {/* Profile Dropdown */}
+                {isProfileDropdownOpen && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in"
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start">
+                        
+                        <div className="ml-3 w-full">
+                          <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
+                          <p className="text-sm text-white/80">{userProfile.email}</p>
+                          
+                          <div className="mt-4 pt-4 border-t border-white/20">
+                            <button
+                              onClick={() => {
+                                setIsProfileDropdownOpen(false);
+                                localStorage.clear();
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition"
+                            >
+                              Sign Out
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
     </>
   );
-},
-
+}
