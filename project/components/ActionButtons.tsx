@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
-import { Award, FileText } from 'lucide-react';
+import { Award, FileText, Table } from 'lucide-react';
 import { useWallet } from '@meshsdk/react';
+import Link from 'next/link';
 
 interface MousePosition {
   x: number;
@@ -138,11 +139,11 @@ export default function ActionButtons({ onCreateTemplate, onCreateCertificate }:
               setIsCertHovering(false);
               setShowWalletTooltip(false);
             }}
-            className={`relative overflow-hidden flex items-center px-8 py-4 backdrop-blur-sm text-white text-lg font-medium rounded-lg border smooth-transition hover-lift ${
-              connected 
-                ? 'bg-blue-600/20 border-white/20 hover:bg-blue-600/30 hover:border-white/40'
-                : 'bg-gray-600/20 border-white/20 hover:bg-gray-600/30 hover:border-white/40 cursor-not-allowed'
-            }`}
+className={`relative overflow-hidden flex items-center px-8 py-4 text-white text-lg font-medium rounded-lg smooth-transition hover-lift animate-stagger-2 ${
+  connected
+    ? 'bg-blue-500 hover:bg-blue-600'
+    : 'bg-blue-500 cursor-not-allowed'
+}`}
           >
             {isCertHovering && (
               <div
@@ -155,7 +156,7 @@ export default function ActionButtons({ onCreateTemplate, onCreateCertificate }:
             <span className="relative z-10">Create Certificates</span>
           </button>
 
-          {showWalletTooltip && !connected && (
+          {showWalletTooltip && (
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 mb-2 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-sm rounded-lg border border-white/10 shadow-lg tooltip z-10">
               Please connect your wallet first
               <div className="absolute top-full left-1/2 w-3 h-3 bg-black/80 transform -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r border-white/10"></div>
@@ -169,7 +170,7 @@ export default function ActionButtons({ onCreateTemplate, onCreateCertificate }:
           onMouseMove={(e) => handleMouseMove(e.nativeEvent, setTemplateMousePosition, templateRef)}
           onMouseEnter={() => setIsTemplateHovering(true)}
           onMouseLeave={() => setIsTemplateHovering(false)}
-          className="relative overflow-hidden flex items-center px-8 py-4 bg-emerald-600/20 backdrop-blur-sm text-white text-lg font-medium rounded-lg border border-white/20 hover:bg-emerald-600/30 hover:border-white/40 smooth-transition hover-lift animate-stagger-2"
+          className="relative overflow-hidden flex items-center px-8 py-4 bg-emerald-500 text-white text-lg font-medium rounded-lg hover:bg-emerald-400 smooth-transition hover-lift animate-stagger-2"
         >
           {isTemplateHovering && (
             <div
@@ -179,8 +180,16 @@ export default function ActionButtons({ onCreateTemplate, onCreateCertificate }:
             />
           )}
           <FileText className="w-6 h-6 mr-3 relative z-10" />
-          <span className="relative z-10">Create Template</span>
+          <span className="relative z-10">Create Templates</span>
         </button>
+        <Link href="/student-records">
+        <button
+          className="relative overflow-hidden flex items-center px-8 py-4 bg-purple-500 backdrop-blur-sm text-white text-lg font-medium rounded-lg hover:bg-purple-400 smooth-transition hover-lift animate-stagger-2"
+        >
+          <Table className="w-6 h-6 mr-3 relative z-10" />
+          <span className="relative z-10">View Student Records</span>
+        </button>
+        </Link>
       </div>
     </>
   );

@@ -17,9 +17,9 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
     if (!userId) {
-      localStorage.clear();
+      sessionStorage.clear();
       router.push('/');
     }
   }, [router]);
@@ -125,7 +125,7 @@ export default function HomePage() {
         }
       `}</style>
       
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white pt-16">
+      <div className="flex items-center justify-center min-h-screen text-white pt-16">
         <Header  
           onWalletStatusChange={handleWalletStatusChange}
           walletAddress={walletAddress}
@@ -137,7 +137,7 @@ export default function HomePage() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
             <div className="mb-12 animate-stagger-1">
               <h1 
-                className="text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-6 tracking-normal"
+                className="text-6xl font-light text-white mb-6 tracking-normal"
                 style={{
                   animation: "textGlow 6s ease-in-out infinite",
                 }}
@@ -152,7 +152,7 @@ export default function HomePage() {
                 />
               </h1>
               <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-                Create, manage, and verify blockchain-based certificates with ease.
+                Create, manage, and verify blockchain-based certificates with ease
               </p>
             </div>
 
@@ -181,7 +181,6 @@ export default function HomePage() {
                     <button
                       onClick={() => {
                         setShowWalletPrompt(false);
-                        // You might want to automatically open the wallet connect popup here
                       }}
                       className="px-4 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-white/20 hover:border-white/40 text-white smooth-transition hover-lift"
                     >

@@ -140,7 +140,7 @@ function CreateCertificate(_a) {
     }, []);
     react_1.useEffect(function () {
         setIsLoading(true);
-        fetch("/api/" + localStorage.getItem("userId") + "/template")
+        fetch("/api/" + sessionStorage.getItem("userId") + "/template")
             .then(function (res) { return res.json(); })
             .then(function (data) {
             var names = data.map(function (t) { return t.degreeName; });
@@ -182,7 +182,7 @@ function CreateCertificate(_a) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 4, 5, 6]);
-                    return [4 /*yield*/, fetch("/api/" + localStorage.getItem("userId") + "/template/" + encodeURIComponent(selectedDegree))];
+                    return [4 /*yield*/, fetch("/api/" + sessionStorage.getItem("userId") + "/template/" + encodeURIComponent(selectedDegree))];
                 case 2:
                     res = _a.sent();
                     if (!res.ok) {

@@ -15,9 +15,9 @@ function HomePage() {
     var _d = react_1.useState(false), showWalletPrompt = _d[0], setShowWalletPrompt = _d[1];
     var router = navigation_1.useRouter();
     react_1.useEffect(function () {
-        var userId = localStorage.getItem('userId');
+        var userId = sessionStorage.getItem('userId');
         if (!userId) {
-            localStorage.clear();
+            sessionStorage.clear();
             router.push('/');
         }
     }, [router]);

@@ -83,7 +83,6 @@ export function UniversitySetupForm({ className, ...props }: React.ComponentProp
   const submitButtonRef = useRef<HTMLButtonElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
 
-  // Fetch universities from API
 const fetchUniversities = useCallback(async () => {
   setLoadingUniversities(true)
   try {

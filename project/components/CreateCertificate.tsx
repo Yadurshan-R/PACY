@@ -69,7 +69,6 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   const [isCanvasHovering, setIsCanvasHovering] = useState(false);
   const [exported, setExported] = useState(false);
 
-  // Refs
   const selectorRef = useRef<HTMLDivElement>(null);
   const loadButtonRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -134,7 +133,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`/api/${localStorage.getItem("userId")}/template`)
+    fetch(`/api/${sessionStorage.getItem("userId")}/template`)
       .then((res) => res.json())
       .then((data) => {
         const names = data.map((t: any) => t.degreeName);
@@ -180,7 +179,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   const loadTemplate = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/${localStorage.getItem("userId")}/template/${encodeURIComponent(selectedDegree)}`);
+      const res = await fetch(`/api/${sessionStorage.getItem("userId")}/template/${encodeURIComponent(selectedDegree)}`);
       if (!res.ok) {
         throw new Error('Template not found');
       }

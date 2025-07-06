@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     await connect();
 
     // Find user
-    const user = await User.findById(userId);
+    const user = await User.findOne({ id: userId });
     if (!user) {
       return NextResponse.json(
         {
