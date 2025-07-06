@@ -1,4 +1,4 @@
-'use client';
+"use client";
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -50,11 +50,18 @@ function Header(_a) {
     var _f = react_1.useState(false), isProfileHovering = _f[0], setIsProfileHovering = _f[1];
     var _g = react_1.useState(false), showWalletPopup = _g[0], setShowWalletPopup = _g[1];
     var _h = react_1.useState(false), isCheckingWallet = _h[0], setIsCheckingWallet = _h[1];
+    var _j = react_1.useState(null), base64Image = _j[0], setBase64Image = _j[1];
     var walletRef = react_1.useRef(null);
     var profileRef = react_1.useRef(null);
     var popupRef = react_1.useRef(null);
     var dropdownRef = react_1.useRef(null);
-    var _j = react_2.useWallet(), connected = _j.connected, wallet = _j.wallet, connect = _j.connect, disconnect = _j.disconnect;
+    var _k = react_2.useWallet(), connected = _k.connected, wallet = _k.wallet, connect = _k.connect, disconnect = _k.disconnect;
+    react_1.useEffect(function () {
+        var imageFromSession = sessionStorage.getItem("logo");
+        if (imageFromSession) {
+            setBase64Image(imageFromSession);
+        }
+    }, []);
     react_1.useEffect(function () {
         if (onWalletStatusChange) {
             onWalletStatusChange(connected);
@@ -69,8 +76,8 @@ function Header(_a) {
                 setIsProfileDropdownOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return function () { return document.removeEventListener('mousedown', handleClickOutside); };
+        document.addEventListener("mousedown", handleClickOutside);
+        return function () { return document.removeEventListener("mousedown", handleClickOutside); };
     }, []);
     react_1.useEffect(function () {
         if (showWalletPopup) {
@@ -108,7 +115,7 @@ function Header(_a) {
                     return [3 /*break*/, 7];
                 case 5:
                     err_1 = _b.sent();
-                    console.error('Wallet error:', err_1);
+                    console.error("Wallet error:", err_1);
                     return [3 /*break*/, 7];
                 case 6:
                     setIsCheckingWallet(false);
@@ -123,21 +130,56 @@ function Header(_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, connect('lace')];
+                    return [4 /*yield*/, connect("lace")];
                 case 1:
                     _a.sent();
-                    console.log('Wallet connected successfully');
+                    console.log("Wallet connected successfully");
                     return [3 /*break*/, 3];
                 case 2:
                     err_2 = _a.sent();
-                    console.error('Failed to connect wallet:', err_2);
+                    console.error("Failed to connect wallet:", err_2);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
         });
     }); };
+    react_1.useEffect(function () {
+        function fetchAddresses() {
+            return __awaiter(this, void 0, void 0, function () {
+                var used, walletAddress_1, userId, err_3;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (!wallet) return [3 /*break*/, 5];
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 4, , 5]);
+                            return [4 /*yield*/, wallet.getUsedAddresses()];
+                        case 2:
+                            used = _a.sent();
+                            walletAddress_1 = used[0];
+                            userId = sessionStorage.getItem("userId");
+                            return [4 /*yield*/, fetch("/api/auth/wallet", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ userId: userId, walletAddress: walletAddress_1 })
+                                })];
+                        case 3:
+                            _a.sent();
+                            return [3 /*break*/, 5];
+                        case 4:
+                            err_3 = _a.sent();
+                            console.warn('Error fetching addresses:', err_3);
+                            return [3 /*break*/, 5];
+                        case 5: return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        fetchAddresses();
+    }, [wallet]);
     var handleDisconnect = function () { return __awaiter(_this, void 0, void 0, function () {
-        var err_3;
+        var err_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -145,20 +187,23 @@ function Header(_a) {
                     return [4 /*yield*/, disconnect()];
                 case 1:
                     _a.sent();
-                    if (currentView !== 'designer') {
+                    if (currentView !== "designer") {
                         onBack();
                     }
-                    console.log('Wallet disconnected successfully');
+                    console.log("Wallet disconnected successfully");
                     return [3 /*break*/, 3];
                 case 2:
-                    err_3 = _a.sent();
-                    console.error('Failed to disconnect wallet:', err_3);
+                    err_4 = _a.sent();
+                    console.error("Failed to disconnect wallet:", err_4);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
         });
     }); };
-    var userProfile = { name: 'John Doe', email: 'john@example.com' };
+    var userProfile = {
+        name: sessionStorage.getItem("orgName"),
+        email: sessionStorage.getItem("email")
+    };
     var handleMouseMove = react_1.useCallback(function (e, setter, ref) {
         if (ref.current) {
             var rect = ref.current.getBoundingClientRect();
@@ -194,12 +239,18 @@ function Header(_a) {
                         React.createElement("span", { className: "text-xl font-light tracking-wide" }, "Certara")),
                     React.createElement("div", { className: "flex items-center space-x-4" },
                         React.createElement("div", { className: "relative" },
-                            React.createElement("button", { ref: walletRef, onClick: handleWalletAction, disabled: isCheckingWallet, onMouseMove: function (e) { return handleMouseMove(e.nativeEvent, setWalletMousePosition, walletRef); }, onMouseEnter: function () { return setIsWalletHovering(true); }, onMouseLeave: function () { return setIsWalletHovering(false); }, className: "relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border " + (connected
+                            React.createElement("button", { ref: walletRef, onClick: handleWalletAction, disabled: isCheckingWallet, onMouseMove: function (e) {
+                                    return handleMouseMove(e.nativeEvent, setWalletMousePosition, walletRef);
+                                }, onMouseEnter: function () { return setIsWalletHovering(true); }, onMouseLeave: function () { return setIsWalletHovering(false); }, className: "relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border " + (connected
                                     ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-white/20 hover:border-white/40 text-white'
                                     : 'bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40 text-white') + " " + (isCheckingWallet ? 'opacity-70 cursor-not-allowed' : '') },
                                 isWalletHovering && (React.createElement("div", { className: "absolute inset-0 rounded-lg pointer-events-none smooth-transition", style: getGlassStyle(walletMousePosition, isWalletHovering), "aria-hidden": "true" })),
                                 React.createElement(lucide_react_1.Wallet, { className: "w-4 h-4 mr-2 relative z-10" }),
-                                React.createElement("span", { className: "relative z-10" }, isCheckingWallet ? 'Checking...' : connected ? 'Disconnect' : 'Connect Wallet')),
+                                React.createElement("span", { className: "relative z-10" }, isCheckingWallet
+                                    ? "Checking..."
+                                    : connected
+                                        ? "Disconnect"
+                                        : "Connect Wallet")),
                             showWalletPopup && (React.createElement("div", { ref: popupRef, className: "absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in" },
                                 React.createElement("div", { className: "p-4" },
                                     React.createElement("div", { className: "flex items-start" },
@@ -215,22 +266,25 @@ function Header(_a) {
                                                     React.createElement(lucide_react_1.ExternalLink, { className: "w-4 h-4 ml-1" })),
                                                 React.createElement("button", { type: "button", onClick: function () { return setShowWalletPopup(false); }, className: "ml-2 inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white smooth-transition hover-lift" }, "Close")))))))),
                         React.createElement("div", { className: "relative" },
-                            React.createElement("button", { ref: profileRef, onClick: function () { return setIsProfileDropdownOpen(!isProfileDropdownOpen); }, onMouseMove: function (e) { return handleMouseMove(e.nativeEvent, setProfileMousePosition, profileRef); }, onMouseEnter: function () { return setIsProfileHovering(true); }, onMouseLeave: function () { return setIsProfileHovering(false); }, className: "relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 hover:border-white/40" },
+                            React.createElement("button", { ref: profileRef, onClick: function () {
+                                    return setIsProfileDropdownOpen(!isProfileDropdownOpen);
+                                }, onMouseMove: function (e) {
+                                    return handleMouseMove(e.nativeEvent, setProfileMousePosition, profileRef);
+                                }, onMouseEnter: function () { return setIsProfileHovering(true); }, onMouseLeave: function () { return setIsProfileHovering(false); }, className: "relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 hover:border-white/40" },
                                 isProfileHovering && (React.createElement("div", { className: "absolute inset-0 rounded-full pointer-events-none smooth-transition", style: getGlassStyle(profileMousePosition, isProfileHovering), "aria-hidden": "true" })),
-                                React.createElement(lucide_react_1.User, { className: "w-6 h-6 relative z-10" }),
-                                React.createElement(lucide_react_1.ChevronDown, { className: "ml-1 w-4 h-4 relative z-10" })),
+                                base64Image ? (React.createElement("img", { src: base64Image.startsWith("data:")
+                                        ? base64Image
+                                        : "data:image/png;base64," + base64Image, alt: "Profile", className: "w-8 h-8 rounded-full object-cover " })) : (React.createElement(lucide_react_1.User, { className: "w-8 h-8 text-emerald-400" }))),
                             isProfileDropdownOpen && (React.createElement("div", { ref: dropdownRef, className: "absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in" },
                                 React.createElement("div", { className: "p-4" },
                                     React.createElement("div", { className: "flex items-start" },
-                                        React.createElement("div", { className: "flex-shrink-0 pt-0.5" },
-                                            React.createElement(lucide_react_1.User, { className: "w-5 h-5 text-emerald-400" })),
                                         React.createElement("div", { className: "ml-3 w-full" },
                                             React.createElement("h3", { className: "text-lg font-medium text-white" }, userProfile.name),
                                             React.createElement("p", { className: "text-sm text-white/80" }, userProfile.email),
                                             React.createElement("div", { className: "mt-4 pt-4 border-t border-white/20" },
                                                 React.createElement("button", { onClick: function () {
                                                         setIsProfileDropdownOpen(false);
-                                                        localStorage.clear();
+                                                        sessionStorage.clear();
                                                     }, className: "w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition" }, "Sign Out"))))))))))))));
 }
 exports["default"] = Header;

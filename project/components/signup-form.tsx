@@ -34,7 +34,7 @@ export function SignupForm({
       }
       else if(res.ok) {
       // Save token if needed
-      localStorage.setItem("token", data.token);
+      sessionStorage.setItem("token", data.token);
       
 
       router.push("/home");

@@ -105,21 +105,33 @@ export default function Header({
   const handleConnect = async () => {
     try {
       await connect("lace");
-      // const walletAddresses = await wallet.getUsedAddresses();
-      // const walletAddress = walletAddresses.length > 0 ? walletAddresses[0] : null;
-      // const userId = localStorage.getItem("userId");
-      // console.log("Vsdvsvsdv",walletAddress);
-      // await fetch("/api/auth/wallet", {
-      //     method: "POST",
-      //     headers: { "Content-Type": "application/json" },
-      //     body: JSON.stringify({ userId, walletAddress }),
-      //   });
-
       console.log("Wallet connected successfully");
     } catch (err) {
       console.error("Failed to connect wallet:", err);
     }
   };
+
+  useEffect(() => {
+    async function fetchAddresses() {
+      if (wallet) {
+        try {
+          const used = await wallet.getUsedAddresses();
+          const walletAddress = used[0];
+          const userId = sessionStorage.getItem("userId");
+
+          await fetch("/api/auth/wallet", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, walletAddress }),
+            });
+        } catch (err) {
+          console.warn('Error fetching addresses:', err);
+        }
+      }
+    }
+
+    fetchAddresses();
+  }, [wallet]);
 
   const handleDisconnect = async () => {
     try {
@@ -396,7 +408,7 @@ export default function Header({
                             <button
                               onClick={() => {
                                 setIsProfileDropdownOpen(false);
-                                localStorage.clear();
+                                sessionStorage.clear();
                               }}
                               className="w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition"
                             >

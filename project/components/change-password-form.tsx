@@ -231,9 +231,9 @@ export function ChangePasswordForm({
 
       setIsLoading(true);
       try {
-        const userId = localStorage.getItem("userId");
+        const userId = sessionStorage.getItem("userId");
         if (!userId) {
-          console.error("User ID not found in localStorage!");
+          console.error("User ID not found in sessionStorage!");
           throw new Error("User ID not found.")
         }
         const newPassword = formData.get("confirmPassword") as string;

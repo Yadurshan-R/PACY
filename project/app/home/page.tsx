@@ -17,9 +17,9 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
     if (!userId) {
-      localStorage.clear();
+      sessionStorage.clear();
       router.push('/');
     }
   }, [router]);

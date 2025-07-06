@@ -114,7 +114,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
       imgInstance.set({ left: 0, top: 0 });
 
       editor.canvas.add(imgInstance);
-      (imgInstance as any).sendToBack();
+      (imgInstance as any).sendToBack?.();
       editor.canvas.renderAll();
     };
     imgElement.src = template;
@@ -175,7 +175,7 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
 
     const backgroundImage = template;
     try {
-      await fetch(`/api/${localStorage.getItem("userId")}/template`, {
+      await fetch(`/api/${sessionStorage.getItem("userId")}/template`, {
         method: 'POST',
         body: JSON.stringify({
           degreeName,

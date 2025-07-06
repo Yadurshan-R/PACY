@@ -224,12 +224,12 @@ export function LoginForm({
           router.push(data.redirect);
         } else if (res.ok && data.flag) {
           showSuccessToast();
-          localStorage.setItem("userId", data.userID);
+          sessionStorage.setItem("userId", data.userID);
           console.log("Login successful ");
           router.push("/sign-in/change-password");
         } else if (res.ok) {
           showSuccessToast();
-          localStorage.setItem("userId", data.userID);
+          sessionStorage.setItem("userId", data.userID);
           sessionStorage.setItem("orgName", data.orgName);
           sessionStorage.setItem("logo", data.logo);
           sessionStorage.setItem("email", data.email);

@@ -262,7 +262,7 @@ export function ForgotPasswordForm({
       try {
         const email = sessionStorage.getItem("resetEmail");
       if (!email) {
-        throw new Error("Email not found in localStorage.");
+        throw new Error("Email not found in sessionStorage.");
       }
 
       const otp = formData.get("otp") as string;

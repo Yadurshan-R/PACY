@@ -106,6 +106,7 @@ function TemplateDesigner(_a) {
             return;
         var imgElement = new window.Image();
         imgElement.onload = function () {
+            var _a, _b;
             var naturalWidth = imgElement.width;
             var naturalHeight = imgElement.height;
             setOriginalSize({ width: naturalWidth, height: naturalHeight });
@@ -128,7 +129,7 @@ function TemplateDesigner(_a) {
             imgInstance.scale(displayScale);
             imgInstance.set({ left: 0, top: 0 });
             editor.canvas.add(imgInstance);
-            imgInstance.sendToBack();
+            (_b = (_a = imgInstance).sendToBack) === null || _b === void 0 ? void 0 : _b.call(_a);
             editor.canvas.renderAll();
         };
         imgElement.src = template;
@@ -191,7 +192,7 @@ function TemplateDesigner(_a) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, fetch("/api/" + localStorage.getItem("userId") + "/template", {
+                    return [4 /*yield*/, fetch("/api/" + sessionStorage.getItem("userId") + "/template", {
                             method: 'POST',
                             body: JSON.stringify({
                                 degreeName: degreeName,
