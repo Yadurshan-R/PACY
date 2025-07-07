@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Shield, Clock, Globe, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useParams } from 'next/navigation';
+import { Copy } from "lucide-react"; 
+import { toast } from "sonner";
 
 type Certificate = {
   nic: string;
@@ -32,12 +35,12 @@ interface CertificateViewPageProps {
   };
 }
 
-export default function CertificateViewPage({ params }: CertificateViewPageProps) {
+export default function CertificateViewPage() {
+  const params = useParams();
+  const txHash = params?.txHash as string;
   const [data, setData] = useState<Metadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const { txHash } = params;
 
   useEffect(() => {
     async function fetchMetadata() {
@@ -72,6 +75,23 @@ export default function CertificateViewPage({ params }: CertificateViewPageProps
     );
 
   const { certificate, user, address } = data;
+
+  async function copyHash() {
+    try {
+      await navigator.clipboard.writeText(txHash);
+      toast.success("Copied to clipboard!", {
+        description: "Transaction hash copied successfully.",
+        duration: 3000,
+      });
+    } catch {
+      toast.error("Failed to copy", {
+        description: "Could not copy the transaction hash. Please try manually.",
+        duration: 4000,
+      });
+    }
+  }
+
+
 
   return (
     <>
@@ -272,7 +292,7 @@ export default function CertificateViewPage({ params }: CertificateViewPageProps
                 </motion.div>
 
                 <motion.div
-                  className="grid grid-cols-3 gap-6 max-w-2xl mx-auto text-center border-t border-white/20 pt-6"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto text-center border-t border-white/20 pt-6"
                   style={{ animation: "fadeInScale 1s ease-out 1.4s both" }}
                 >
                   <div>
@@ -300,6 +320,35 @@ export default function CertificateViewPage({ params }: CertificateViewPageProps
                       Verified
                     </div>
                   </div>
+
+                  <div>
+                    <div className="designer-text text-white/40 text-xs font-medium tracking-wider uppercase">
+                      University Wallet
+                    </div>
+                    <div
+                      className="flex items-center justify-center gap-2 max-w-[160px] mx-auto truncate cursor-pointer select-none"
+                      title="Copy wallet address"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(address);
+                          toast.success("Copied to clipboard!", {
+                            description: "University wallet address copied.",
+                            duration: 3000,
+                          });
+                        } catch {
+                          toast.error("Copy failed", {
+                            description: "Could not copy wallet address.",
+                            duration: 4000,
+                          });
+                        }
+                      }}
+                    >
+                      <span className="designer-text text-white/70 text-sm font-mono truncate">
+                        {address.slice(0, 8)}...{address.slice(-6)}
+                      </span>
+                      <Copy className="w-4 h-4 text-white/70 hover:text-white transition-colors" />
+                    </div>
+                  </div>
                 </motion.div>
               </div>
             </div>
@@ -324,7 +373,13 @@ export default function CertificateViewPage({ params }: CertificateViewPageProps
                 <span className="relative z-10">Back to Home</span>
               </button>
             </Link>
-
+            <button
+                onClick={() => window.location.href = "http://localhost:3000/organizations"}
+                className="designer-text bg-transparent border border-white/20 hover:bg-white/8 hover:border-white/40 text-white hover:text-white transition-all duration-300 rounded-xl h-12 px-8 text-base font-medium focus:ring-2 focus:ring-white/20 focus:ring-offset-0 relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 -translate-x-full transition-transform duration-1000" />
+                <span className="relative z-10">Verify University</span>
+              </button>
             <a
               href={`https://preprod.cardanoscan.io/transaction/${txHash}?tab=metadata`}
               target="_blank"
@@ -338,6 +393,7 @@ export default function CertificateViewPage({ params }: CertificateViewPageProps
               <span className="relative z-10">View on CardanoScan</span>
               <ArrowRight className="w-4 h-4" />
             </a>
+            
           </motion.div>
 
           <motion.div

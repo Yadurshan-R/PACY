@@ -19,8 +19,9 @@ export default function HomePage() {
   useEffect(() => {
     const userId = sessionStorage.getItem('userId');
     if (!userId) {
+      router.push('/sign-in');
       sessionStorage.clear();
-      router.push('/');
+      localStorage.clear();
     }
   }, [router]);
 

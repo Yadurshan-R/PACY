@@ -11,6 +11,7 @@ import { buildCertificateMetadata } from '@/utils/metadataBuilder';
 import { useWallet } from '@meshsdk/react';
 import QRCode from 'react-qr-code';
 import { createRoot } from 'react-dom/client';
+import { toast } from "sonner";
 
 interface MousePosition {
   x: number;
@@ -396,9 +397,20 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
       
       setTxHash(txHash);
       setShowQRCodeModal(true);
+      
+      toast.success("Certificate Minted", {
+        description: "The certificate has been successfully minted on the blockchain.",
+        duration: 5000,
+      });
     } catch (error) {
       console.error('Error minting certificate:', error);
-      alert('Failed to mint certificate: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error("Minting Failed", {
+        description: error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while minting.",
+        duration: 3000,
+      });
+
     } finally {
       setIsSubmitting(false);
     }
@@ -496,91 +508,97 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
   };
 
   const downloadCanvasAsPDF = async () => {
-  if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
-    alert('Please place the QR code on the certificate before exporting');
-    return;
-  }
-
-  const canvas = editor.canvas;
-  const { width: naturalWidth, height: naturalHeight } = originalSize;
-
-  const displayWidth = canvas.getWidth();
-  const displayHeight = canvas.getHeight();
-
-  const scaleX = naturalWidth / displayWidth;
-  const scaleY = naturalHeight / displayHeight;
-  const exportScale = Math.min(scaleX, scaleY);
-
-  canvas.getObjects().forEach((obj) => {
-    obj.scaleX = (obj.scaleX ?? 1) * exportScale;
-    obj.scaleY = (obj.scaleY ?? 1) * exportScale;
-    obj.left = (obj.left ?? 0) * exportScale;
-    obj.top = (obj.top ?? 0) * exportScale;
-    obj.setCoords();
-  });
-  canvas.setWidth(naturalWidth);
-  canvas.setHeight(naturalHeight);
-  canvas.renderAll();
-
-  const dataUrl = canvas.toDataURL({
-    format: 'png',
-    multiplier: 1,
-  });
-
-  canvas.getObjects().forEach((obj) => {
-    obj.scaleX = (obj.scaleX ?? 1) / exportScale;
-    obj.scaleY = (obj.scaleY ?? 1) / exportScale;
-    obj.left = (obj.left ?? 0) / exportScale;
-    obj.top = (obj.top ?? 0) / exportScale;
-    obj.setCoords();
-  });
-  canvas.setWidth(displayWidth);
-  canvas.setHeight(displayHeight);
-  canvas.renderAll();
-
-  const pdf = new jsPDF({
-    orientation: naturalWidth > naturalHeight ? 'landscape' : 'portrait',
-    unit: 'px',
-    format: [naturalWidth, naturalHeight],
-  });
-
-  pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
-  
-  // Save the PDF first
-  pdf.save(`${formData.username.replace(/\s+/g, '_')}_${selectedDegree.replace(/\s+/g, '_')}_certificate.pdf`);
-
-  // Then make the API call to store the record
-  try {
-    const response = await fetch('/api/record/add-canditate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: sessionStorage.getItem("userId"),
-        courseName: selectedDegree,
-        candidateName: formData.username,
-        nicNumber: formData.nic,
-        dateIssued: formData.dateIssued,
-        blockHash: txHash
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to store certificate record');
+    if (!editor || !editor.canvas || !originalSize || !qrCodePlaced) {
+      alert('Please place the QR code on the certificate before exporting');
+      return;
     }
 
-    const result = await response.json();
-    console.log('Certificate record stored:', result);
-  } catch (error) {
-    console.error('Error storing certificate record:', error);
-    // You might want to show a toast notification here instead of alert
-    alert('Certificate was downloaded but record storage failed. Please contact support.');
+    const canvas = editor.canvas;
+    const { width: naturalWidth, height: naturalHeight } = originalSize;
+
+    const displayWidth = canvas.getWidth();
+    const displayHeight = canvas.getHeight();
+
+    const scaleX = naturalWidth / displayWidth;
+    const scaleY = naturalHeight / displayHeight;
+    const exportScale = Math.min(scaleX, scaleY);
+
+    canvas.getObjects().forEach((obj) => {
+      obj.scaleX = (obj.scaleX ?? 1) * exportScale;
+      obj.scaleY = (obj.scaleY ?? 1) * exportScale;
+      obj.left = (obj.left ?? 0) * exportScale;
+      obj.top = (obj.top ?? 0) * exportScale;
+      obj.setCoords();
+    });
+    canvas.setWidth(naturalWidth);
+    canvas.setHeight(naturalHeight);
+    canvas.renderAll();
+
+    const dataUrl = canvas.toDataURL({
+      format: 'png',
+      multiplier: 1,
+    });
+
+    canvas.getObjects().forEach((obj) => {
+      obj.scaleX = (obj.scaleX ?? 1) / exportScale;
+      obj.scaleY = (obj.scaleY ?? 1) / exportScale;
+      obj.left = (obj.left ?? 0) / exportScale;
+      obj.top = (obj.top ?? 0) / exportScale;
+      obj.setCoords();
+    });
+    canvas.setWidth(displayWidth);
+    canvas.setHeight(displayHeight);
+    canvas.renderAll();
+
+    const pdf = new jsPDF({
+      orientation: naturalWidth > naturalHeight ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [naturalWidth, naturalHeight],
+    });
+
+    pdf.addImage(dataUrl, 'PNG', 0, 0, naturalWidth, naturalHeight);
+    
+    // Save the PDF first
+    pdf.save(`${formData.username.replace(/\s+/g, '_')}_${selectedDegree.replace(/\s+/g, '_')}_certificate.pdf`);
+
+    // Then make the API call to store the record
+    try {
+      const response = await fetch('/api/record/add-canditate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: sessionStorage.getItem("userId"),
+          courseName: selectedDegree,
+          candidateName: formData.username,
+          nicNumber: formData.nic,
+          dateIssued: formData.dateIssued,
+          blockHash: txHash
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to store certificate record');
+      }
+      toast.success("Export Successful", {
+        description: "Certificate downloaded and record saved successfully.",
+        duration: 5000,
+      });
+
+      const result = await response.json();
+      console.log('Certificate record stored:', result);
+    } catch (error) {
+      console.error('Error storing certificate record:', error);
+      toast.error("Export Partially Failed", {
+        description: "Certificate was downloaded but record storage failed.",
+        duration: 3000,
+      });    
   }
 
-  setExported(true);
-  setTimeout(() => onBack(), 1000);
-};
+    setExported(true);
+    setTimeout(() => onBack(), 1000);
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

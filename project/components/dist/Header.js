@@ -70,10 +70,16 @@ function Header(_a) {
     }, [connected, onWalletStatusChange]);
     react_1.useEffect(function () {
         var handleClickOutside = function (event) {
-            if (popupRef.current && !popupRef.current.contains(event.target)) {
+            if (popupRef.current &&
+                !popupRef.current.contains(event.target) &&
+                walletRef.current &&
+                !walletRef.current.contains(event.target)) {
                 setShowWalletPopup(false);
             }
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (dropdownRef.current &&
+                !dropdownRef.current.contains(event.target) &&
+                profileRef.current &&
+                !profileRef.current.contains(event.target)) {
                 setIsProfileDropdownOpen(false);
             }
         };
@@ -107,7 +113,10 @@ function Header(_a) {
                 case 3:
                     _b.trys.push([3, 5, 6, 7]);
                     if (typeof window !== 'undefined' && !((_a = window.cardano) === null || _a === void 0 ? void 0 : _a.lace)) {
-                        setShowWalletPopup(true);
+                        setShowWalletPopup(function (prev) {
+                            console.log("sdvsdvsd", prev);
+                            return !prev;
+                        });
                         return [2 /*return*/];
                     }
                     return [4 /*yield*/, handleConnect()];
@@ -268,7 +277,7 @@ function Header(_a) {
                                     : connected
                                         ? "Disconnect"
                                         : "Connect Wallet")),
-                            showWalletPopup && (React.createElement("div", { ref: popupRef, className: "absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in" },
+                            showWalletPopup && (React.createElement("div", { ref: popupRef, className: "absolute right-0 mt-2 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in" },
                                 React.createElement("div", { className: "p-4" },
                                     React.createElement("div", { className: "flex items-start" },
                                         React.createElement("div", { className: "flex-shrink-0 pt-0.5" },
@@ -292,7 +301,7 @@ function Header(_a) {
                                 base64Image ? (React.createElement("img", { src: base64Image.startsWith("data:")
                                         ? base64Image
                                         : "data:image/png;base64," + base64Image, alt: "Profile", className: "w-8 h-8 rounded-full object-cover " })) : (React.createElement(lucide_react_1.User, { className: "w-8 h-8 text-emerald-400" }))),
-                            isProfileDropdownOpen && (React.createElement("div", { ref: dropdownRef, className: "absolute right-0 mt-2 w-72 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in" },
+                            isProfileDropdownOpen && (React.createElement("div", { ref: dropdownRef, className: "absolute right-0 mt-2 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg z-[1000] animate-fade-in" },
                                 React.createElement("div", { className: "p-4" },
                                     React.createElement("div", { className: "flex items-start" },
                                         React.createElement("div", { className: "ml-3 w-full" },
@@ -302,6 +311,7 @@ function Header(_a) {
                                                 React.createElement("button", { onClick: function () {
                                                         setIsProfileDropdownOpen(false);
                                                         sessionStorage.clear();
+                                                        window.location.href = "/sign-in";
                                                     }, className: "w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition" }, "Sign Out"))))))))))))));
 }
 exports["default"] = Header;

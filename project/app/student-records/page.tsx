@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 
 interface Student {
-  id: number
+  id: string
   studentName: string
   nicNumber: string
   dateIssued: string
@@ -25,99 +25,6 @@ interface Degree {
 interface MousePosition {
   x: number
   y: number
-}
-
-// Sample degree data
-const sampleDegrees: Degree[] = [
-  { id: 1, degreeName: "Bachelor of Computer Science", studentCount: 45 },
-  { id: 2, degreeName: "Bachelor of Business Administration", studentCount: 32 },
-  { id: 3, degreeName: "Bachelor of Engineering", studentCount: 28 },
-  { id: 4, degreeName: "Master of Science", studentCount: 15 },
-  { id: 5, degreeName: "Bachelor of Arts", studentCount: 22 },
-]
-
-// Sample student data organized by degree
-const sampleStudents: Record<number, Student[]> = {
-  1: [
-    {
-      id: 1,
-      studentName: "John Smith",
-      nicNumber: "199512345678",
-      dateIssued: "2024-06-15",
-      hashNo: "CS2024001",
-    },
-    {
-      id: 2,
-      studentName: "Sarah Johnson",
-      nicNumber: "199687654321",
-      dateIssued: "2024-06-15",
-      hashNo: "CS2024002",
-    },
-    {
-      id: 3,
-      studentName: "Michael Brown",
-      nicNumber: "199798765432",
-      dateIssued: "2024-06-15",
-      hashNo: "CS2024003",
-    },
-  ],
-  2: [
-    {
-      id: 4,
-      studentName: "Emily Davis",
-      nicNumber: "199634567890",
-      dateIssued: "2024-07-20",
-      hashNo: "BBA2024001",
-    },
-    {
-      id: 5,
-      studentName: "David Wilson",
-      nicNumber: "199545678901",
-      dateIssued: "2024-07-20",
-      hashNo: "BBA2024002",
-    },
-  ],
-  3: [
-    {
-      id: 6,
-      studentName: "Lisa Anderson",
-      nicNumber: "199456789012",
-      dateIssued: "2024-08-10",
-      hashNo: "ENG2024001",
-    },
-    {
-      id: 7,
-      studentName: "Robert Taylor",
-      nicNumber: "199367890123",
-      dateIssued: "2024-08-10",
-      hashNo: "ENG2024002",
-    },
-  ],
-  4: [
-    {
-      id: 8,
-      studentName: "Jennifer Martinez",
-      nicNumber: "199278901234",
-      dateIssued: "2024-09-05",
-      hashNo: "MS2024001",
-    },
-  ],
-  5: [
-    {
-      id: 9,
-      studentName: "Christopher Lee",
-      nicNumber: "199189012345",
-      dateIssued: "2024-05-30",
-      hashNo: "BA2024001",
-    },
-    {
-      id: 10,
-      studentName: "Amanda White",
-      nicNumber: "199090123456",
-      dateIssued: "2024-05-30",
-      hashNo: "BA2024002",
-    },
-  ],
 }
 
 export default function StudentRecordsPage() {
@@ -139,6 +46,15 @@ export default function StudentRecordsPage() {
   const containerRef = useRef<HTMLDivElement>(null)
   const backButtonRef = useRef<HTMLButtonElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const userId = sessionStorage.getItem('userId');
+    if (!userId) {
+      router.push('/');
+      sessionStorage.clear();
+      localStorage.clear();
+    }
+  }, [router]);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent, setter: (pos: MousePosition) => void, ref: React.RefObject<HTMLElement>) => {
@@ -225,24 +141,85 @@ export default function StudentRecordsPage() {
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDegrees(sampleDegrees)
-      setLoading(false)
-    }, 1000)
+    const fetchDegrees = async () => {
+      const userId = sessionStorage.getItem('userId');
+      if (!userId) return;
 
-    return () => clearTimeout(timer)
-  }, [])
+      try {
+        const response = await fetch("/api/record/get-courses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch courses");
+          return;
+        }
+
+        const data = await response.json();
+        const courses = data.courses.map((course: any, index: number) => ({
+          id: index + 1, // You can use `course.courseId` if it's numeric
+          degreeName: course.courseName,
+          studentCount: course.studentCount,
+        }));
+
+        setDegrees(courses);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDegrees();
+  }, []);
+
 
   const handleDegreeClick = async (degree: Degree) => {
     setLoadingStudents(true)
     setSelectedDegree(degree)
     setSearchTerm("")
 
-    setTimeout(() => {
-      setStudents(sampleStudents[degree.id] || [])
+    try {
+      const userId = sessionStorage.getItem("userId")
+      if (!userId) return
+
+      const response = await fetch("/api/record/get-records", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          courseId: degree.id.toString(), // assuming id = courseId
+        }),
+      })
+
+      if (!response.ok) {
+        console.error("Failed to fetch student records")
+        return
+      }
+
+      const data = await response.json()
+      const mappedStudents = data.candidates.map((candidate: any) => ({
+        id: candidate._id, // MongoDB ObjectId
+        studentName: candidate.candidateName,
+        nicNumber: candidate.nicNumber,
+        dateIssued: candidate.dateIssued,
+        hashNo: candidate.blockHash,
+      }))
+
+      setStudents(mappedStudents)
+    } catch (err) {
+      console.error("Error fetching student data:", err)
+    } finally {
       setLoadingStudents(false)
-    }, 500)
+    }
   }
+
 
   const handleBackToDegrees = () => {
     setSelectedDegree(null)
@@ -389,6 +366,7 @@ export default function StudentRecordsPage() {
                             <th className="text-left text-white font-semibold py-4 px-4">NIC Number</th>
                             <th className="text-left text-white font-semibold py-4 px-4">Date Issued</th>
                             <th className="text-left text-white font-semibold py-4 px-4">Certificate Hash</th>
+                            <th className="text-left text-white font-semibold py-4 px-4">View Details</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -418,6 +396,28 @@ export default function StudentRecordsPage() {
                                 <code className="bg-white/10 px-2 py-1 rounded text-sm font-mono text-white/80">
                                   {student.hashNo}
                                 </code>
+                              </td>
+
+                              <td className="text-white/60 py-4 px-4">
+                                <a
+                                  href={`/certificate/${student.hashNo}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center p-1 rounded hover:bg-white/10 transition-colors"
+                                  title="View Certificate"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                </a>
                               </td>
                             </tr>
                           ))}

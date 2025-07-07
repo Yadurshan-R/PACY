@@ -6,6 +6,7 @@ import { FabricJSCanvas, useFabricJSEditor } from 'fabricjs-react';
 import * as fabric from 'fabric';
 import { jsPDF } from 'jspdf';
 import { Download, UploadCloud, Type, Palette, Save, Trash2, RotateCcw, Sparkles, ArrowLeft } from 'lucide-react';
+import { toast } from "sonner";
 
 interface MousePosition {
   x: number;
@@ -186,9 +187,20 @@ export default function TemplateDesigner({onBack}: TemplateDesignerProps) {
         }),
         headers: { 'Content-Type': 'application/json' },
       });
-      onBack();
+
+      toast.success("Template Saved", {
+        description: "Your certificate template has been saved successfully.",
+        duration: 4000,
+      });
+
+      onBack(); // navigate away if needed
     } catch (error) {
       console.error('Failed to save template:', error);
+
+      toast.error("Save Failed", {
+        description: "There was a problem saving the template. Please try again.",
+        duration: 5000,
+      });
     }
   };
 

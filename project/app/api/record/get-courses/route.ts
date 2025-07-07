@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     const courses = record.courses.map((course) => ({
       courseId: course.courseId,
       courseName: course.courseName,
+      studentCount: course.candidates?.length || 0,
     }));
 
     return NextResponse.json({ courses });

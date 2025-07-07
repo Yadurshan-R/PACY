@@ -54,20 +54,31 @@ export default function Header({
     }
   }, [connected, onWalletStatusChange]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        setShowWalletPopup(false);
-      }
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      popupRef.current &&
+      !popupRef.current.contains(event.target as Node) &&
+      walletRef.current &&
+      !walletRef.current.contains(event.target as Node)
+    ) {
+      setShowWalletPopup(false);
+    }
+    
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node) &&
+      profileRef.current &&
+      !profileRef.current.contains(event.target as Node)
+    ) {
+      setIsProfileDropdownOpen(false);
+    }
+  };
 
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   useEffect(() => {
     if (showWalletPopup) {
@@ -90,7 +101,11 @@ export default function Header({
     setIsCheckingWallet(true);
     try {
       if (typeof window !== 'undefined' && !window.cardano?.lace) {
-        setShowWalletPopup(true);
+        
+setShowWalletPopup((prev) => {
+  console.log("sdvsdvsd", prev);
+  return !prev;
+});
         return;
       }
       await handleConnect();
@@ -419,6 +434,7 @@ export default function Header({
                               onClick={() => {
                                 setIsProfileDropdownOpen(false);
                                 sessionStorage.clear();
+                                window.location.href = "/sign-in";
                               }}
                               className="w-full text-left px-3 py-2 text-sm font-medium rounded-md hover:bg-white/10 text-white smooth-transition"
                             >
