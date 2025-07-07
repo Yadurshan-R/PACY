@@ -184,7 +184,7 @@ className={`relative overflow-hidden flex items-center px-8 py-4 text-white text
         </button>
         <Link href="/student-records">
         <button
-          className="relative overflow-hidden flex items-center px-8 py-4 bg-purple-500 backdrop-blur-sm text-white text-lg font-medium rounded-lg hover:bg-purple-400 smooth-transition hover-lift animate-stagger-2"
+          className="relative overflow-hidden flex items-center px-8 py-4 text-white text-lg font-medium rounded-lg outline border border-white/40 hover:bg-white hover:text-black smooth-transition hover-lift animate-stagger-2"
         >
           <Table className="w-6 h-6 mr-3 relative z-10" />
           <span className="relative z-10">View Student Records</span>
