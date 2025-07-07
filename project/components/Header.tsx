@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
-import { ChevronDown, Wallet, Award, User, ExternalLink } from "lucide-react";
+import { Wallet, User, ExternalLink } from "lucide-react";
 import { useWallet } from "@meshsdk/react";
 import { toast } from "sonner";
 
@@ -126,41 +126,41 @@ setShowWalletPopup((prev) => {
     }
   };
 
-useEffect(() => {
-  async function fetchAddresses() {
-    if (wallet) {
-      try {
-        const used = await wallet.getUsedAddresses();
-        const walletAddress = used[0];
-        const userId = sessionStorage.getItem("userId");
+  useEffect(() => {
+    async function fetchAddresses() {
+      if (wallet) {
+        try {
+          const used = await wallet.getUsedAddresses();
+          const walletAddress = used[0];
+          const userId = sessionStorage.getItem("userId");
 
-        const response = await fetch("/api/auth/wallet", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, walletAddress }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json(); // 🔥 Parse JSON error message
-
-          console.warn("Server responded with error:", response.status, errorData);
-          await handleDisconnect();
-
-          toast.error("Validation Error", {
-            description: errorData.message || "Wallet validation failed.",
-            duration: 6000,
+          const response = await fetch("/api/auth/wallet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, walletAddress }),
           });
-        }
 
-      } catch (err) {
-        console.warn("Error fetching addresses or sending request:", err);
-        await handleDisconnect();
+          if (!response.ok) {
+            const errorData = await response.json(); // 🔥 Parse JSON error message
+
+            console.warn("Server responded with error:", response.status, errorData);
+            await handleDisconnect();
+
+            toast.error("Validation Error", {
+              description: errorData.message || "Wallet validation failed.",
+              duration: 6000,
+            });
+          }
+
+        } catch (err) {
+          console.warn("Error fetching addresses or sending request:", err);
+          await handleDisconnect();
+        }
       }
     }
-  }
 
-  fetchAddresses();
-}, [wallet]);
+    fetchAddresses();
+  }, [wallet]);
 
 
   const handleDisconnect = async () => {
@@ -279,16 +279,24 @@ useEffect(() => {
           }
         }
       `}</style>
-      
+
       <header className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-sm border-b border-white/20 text-white z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mr-3 border border-white/20 hover-lift">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-light tracking-wide">Certara</span>
+              <span className="text-2xl font-light tracking-wide relative">
+                Certara
+                <span
+                  className="absolute w-1 h-1 bg-white rounded-full"
+                  style={{
+                    bottom: 7,
+                    left: "100%",
+                    marginLeft: "2px",
+                    animation: "subtlePulse 6s ease-in-out infinite",
+                  }}
+                />
+              </span>
             </div>
 
             {/* Wallet + Profile */}
@@ -307,33 +315,23 @@ useEffect(() => {
                   }
                   onMouseEnter={() => setIsWalletHovering(true)}
                   onMouseLeave={() => setIsWalletHovering(false)}
-                  className={`relative overflow-hidden flex items-center px-4 py-2 rounded-lg font-medium smooth-transition hover-lift border ${
-                    connected
-                      ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-white/20 hover:border-white/40 text-white'
-                      : 'bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40 text-white'
-                  } ${isCheckingWallet ? 'opacity-70 cursor-not-allowed' : ''}`}
-                >
+                  className={`relative overflow-hidden flex items-center px-4 px-2 rounded-lg font-semibold text-sm smooth-transition hover-lift border min-h-[48px] ${connected
+                      ? "bg-black/80 hover:bg-black/90 border-white/20 hover:border-white/40 text-white"
+                      : "bg-black/80 hover:bg-black/90 border-white/20 hover:border-white/40 text-white"
+                    } ${isCheckingWallet ? "opacity-70 cursor-not-allowed" : ""}`}>
                   {isWalletHovering && (
                     <div
                       className="absolute inset-0 rounded-lg pointer-events-none smooth-transition"
-                      style={getGlassStyle(
-                        walletMousePosition,
-                        isWalletHovering
-                      )}
+                      style={getGlassStyle(walletMousePosition, isWalletHovering)}
                       aria-hidden="true"
                     />
                   )}
-                  <Wallet className="w-4 h-4 mr-2 relative z-10" />
+                  <Wallet className="w-5 h-5 mr-3 relative z-10" />
                   <span className="relative z-10">
-                    {isCheckingWallet
-                      ? "Checking..."
-                      : connected
-                      ? "Disconnect"
-                      : "Connect Wallet"}
+                    {isCheckingWallet ? "Connecting..." : connected ? "Disconnect" : "Connect Wallet"}
                   </span>
                 </button>
 
-                {/* Wallet Install Popup */}
                 {showWalletPopup && (
                   <div
                     ref={popupRef}
@@ -341,9 +339,6 @@ useEffect(() => {
                   >
                     <div className="p-4">
                       <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5">
-                          <Wallet className="w-5 h-5 text-emerald-400" />
-                        </div>
                         <div className="ml-3">
                           <h3 className="text-lg font-medium text-white">
                             Lace Wallet Required
@@ -359,7 +354,7 @@ useEffect(() => {
                               href="https://www.lace.io/"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 border border-white/20 hover:border-white/40 text-emerald-200 smooth-transition hover-lift"
+                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-white text-black smooth-transition hover-lift"
                             >
                               Get Lace Wallet
                               <ExternalLink className="w-4 h-4 ml-1" />
@@ -394,7 +389,7 @@ useEffect(() => {
                   }
                   onMouseEnter={() => setIsProfileHovering(true)}
                   onMouseLeave={() => setIsProfileHovering(false)}
-                  className="relative overflow-hidden flex items-center p-2 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 hover:border-white/40"
+                  className="relative overflow-hidden flex items-center justify-center p-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 smooth-transition hover-lift border border-white/20 hover:border-white/40"
                 >
                   {isProfileHovering && (
                     <div
@@ -407,18 +402,18 @@ useEffect(() => {
                     />
                   )}
                   {base64Image ? (
-                            <img
-                              src={
-                                base64Image.startsWith("data:")
-                                  ? base64Image
-                                  : `data:image/png;base64,${base64Image}`
-                              }
-                              alt="Profile"
-                              className="w-8 h-8 rounded-full object-cover "
-                            />
-                          ) : (
-                            <User className="w-8 h-8 text-emerald-400" />
-                          )}
+                    <img
+                      src={
+                        base64Image.startsWith("data:")
+                          ? base64Image
+                          : `data:image/png;base64,${base64Image}`
+                      }
+                      alt="Profile"
+                      className="w-full h-full rounded-full object-cover border-none block"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-white" />
+                  )}
                 </button>
 
                 {/* Profile Dropdown */}
@@ -429,11 +424,11 @@ useEffect(() => {
                   >
                     <div className="p-4">
                       <div className="flex items-start">
-                        
+
                         <div className="ml-3 w-full">
                           <h3 className="text-lg font-medium text-white">{userProfile.name}</h3>
                           <p className="text-sm text-white/80">{userProfile.email}</p>
-                          
+
                           <div className="mt-4 pt-4 border-t border-white/20">
                             <button
                               onClick={() => {
