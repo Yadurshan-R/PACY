@@ -59,6 +59,7 @@ var metadataBuilder_1 = require("@/utils/metadataBuilder");
 var react_2 = require("@meshsdk/react");
 var react_qr_code_1 = require("react-qr-code");
 var client_1 = require("react-dom/client");
+var sonner_1 = require("sonner");
 function CreateCertificate(_a) {
     var _this = this;
     var onBack = _a.onBack;
@@ -375,11 +376,20 @@ function CreateCertificate(_a) {
                     txHash_1 = (_a.sent()).txHash;
                     setTxHash(txHash_1);
                     setShowQRCodeModal(true);
+                    sonner_1.toast.success("Certificate Minted", {
+                        description: "The certificate has been successfully minted on the blockchain.",
+                        duration: 5000
+                    });
                     return [3 /*break*/, 5];
                 case 3:
                     error_2 = _a.sent();
                     console.error('Error minting certificate:', error_2);
-                    alert('Failed to mint certificate: ' + (error_2 instanceof Error ? error_2.message : String(error_2)));
+                    sonner_1.toast.error("Minting Failed", {
+                        description: error_2 instanceof Error
+                            ? error_2.message
+                            : "An unexpected error occurred while minting.",
+                        duration: 3000
+                    });
                     return [3 /*break*/, 5];
                 case 4:
                     setIsSubmitting(false);
@@ -537,6 +547,10 @@ function CreateCertificate(_a) {
                     if (!response.ok) {
                         throw new Error('Failed to store certificate record');
                     }
+                    sonner_1.toast.success("Export Successful", {
+                        description: "Certificate downloaded and record saved successfully.",
+                        duration: 5000
+                    });
                     return [4 /*yield*/, response.json()];
                 case 3:
                     result = _a.sent();
@@ -545,8 +559,10 @@ function CreateCertificate(_a) {
                 case 4:
                     error_3 = _a.sent();
                     console.error('Error storing certificate record:', error_3);
-                    // You might want to show a toast notification here instead of alert
-                    alert('Certificate was downloaded but record storage failed. Please contact support.');
+                    sonner_1.toast.error("Export Partially Failed", {
+                        description: "Certificate was downloaded but record storage failed.",
+                        duration: 3000
+                    });
                     return [3 /*break*/, 5];
                 case 5:
                     setExported(true);
