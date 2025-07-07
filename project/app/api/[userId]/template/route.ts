@@ -1,4 +1,3 @@
-// Correct way to use params in App Router API routes
 import connect from '@/lib/db';
 import Template from '@/lib/models/template';
 import { NextRequest } from 'next/server';

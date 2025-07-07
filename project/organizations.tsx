@@ -300,7 +300,6 @@ useEffect(() => {
               </div>
             </main>
 
-            {/* Footer */}
             <footer className="text-center text-xs text-white/40 space-y-2 mt-8 animate-stagger-4">
               <p>© 2025 Certera. All rights reserved.</p>
             </footer>

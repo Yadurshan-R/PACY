@@ -1,5 +1,3 @@
-// /app/api/[userId]/template/[degreeName]/route.ts
-
 import connect from '@/lib/db';
 import Template from '@/lib/models/template';
 import { NextRequest } from 'next/server';

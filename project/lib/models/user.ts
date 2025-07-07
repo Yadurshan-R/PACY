@@ -15,7 +15,6 @@ export interface IUser extends Document {
   resetPasswordOTPExpires: Date;
 }
 
-
 const userSchema = new Schema<IUser>({
   id: { type: String, required: true },
   orgName: { type: String, required: true },

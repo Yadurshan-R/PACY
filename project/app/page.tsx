@@ -1,12 +1,11 @@
 "use client"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Clock, Globe } from "lucide-react"
+import { Shield, Clock, Globe } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
 export default function HomePage() {
-
 
   const [isScrolled, setIsScrolled] = useState(false)
 
