@@ -245,9 +245,10 @@ function LoginForm(_a) {
                 case 3:
                     data = _b.sent();
                     if (res.ok && data.isAdmin) {
-                        showSuccessToast();
+                        sessionStorage.setItem("accessToken", data.token);
                         console.log("Login as Admin successful ");
                         router.push(data.redirect);
+                        showSuccessToast();
                     }
                     else if (res.ok && data.flag) {
                         showSuccessToast();

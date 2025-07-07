@@ -219,9 +219,10 @@ export function LoginForm({
         const data = await res.json();
 
         if (res.ok && data.isAdmin) {
-          showSuccessToast();
+          sessionStorage.setItem("accessToken", data.token);
           console.log("Login as Admin successful ");
           router.push(data.redirect);
+          showSuccessToast();
         } else if (res.ok && data.flag) {
           showSuccessToast();
           sessionStorage.setItem("userId", data.userID);

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import connect from '@/lib/db';
 import User from '@/lib/models/user';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
@@ -16,9 +19,24 @@ export async function POST(req: Request) {
     }
 
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        console.log("Logged as Admin");
-        return NextResponse.json(
-        { isAdmin: true, redirect: 'auth/admincertara/signup/' },
+      console.log("Logged as Admin");
+      const adminToken = crypto.randomBytes(32).toString('hex');
+      const envPath = path.resolve(process.cwd(), '.env');
+      let envContent = '';
+      if (fs.existsSync(envPath)) {
+              envContent = fs.readFileSync(envPath, 'utf-8');
+              const regex = /^ADMIN_SESSION_TOKEN=.*$/m;
+              if (regex.test(envContent)) {
+                envContent = envContent.replace(regex, `ADMIN_SESSION_TOKEN=${adminToken}`);
+              } else {
+                envContent += `\nADMIN_SESSION_TOKEN=${adminToken}`;
+              }
+            } else {
+              envContent = `ADMIN_SESSION_TOKEN=${adminToken}`;
+            }
+      fs.writeFileSync(envPath, envContent);
+      return NextResponse.json(
+        { isAdmin: true, token: adminToken, redirect: 'auth/admincertara/signup/' },
         { status: 200 }
       );
     }

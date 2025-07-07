@@ -1,11 +1,13 @@
 export const runtime = "nodejs";
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sendOTPEmail } from "./mailto";
 import User from "@/lib/models/user";
 import connect from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
+
+const ADMIN_TOKEN = process.env.ADMIN_SESSION_TOKEN;
 
 function generateOTP(length = 8): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -16,8 +18,12 @@ function generateOTP(length = 8): string {
   return otp;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const token = request.headers.get("authorization");
+    if (!token || token !== `Bearer ${ADMIN_TOKEN}`) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     const body = await request.json();
     const { orgName, location, contactNo, email, logo } = body;
 

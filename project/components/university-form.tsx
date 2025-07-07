@@ -294,6 +294,7 @@ const fetchUniversities = useCallback(async () => {
       }
 
       setIsLoading(true)
+      const adminToken = sessionStorage.getItem('accessToken');
       try {
         const universityData = {
           orgName: formData.universityName,
@@ -307,6 +308,7 @@ const fetchUniversities = useCallback(async () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${adminToken}`,
           },
           body: JSON.stringify(universityData),
         })
@@ -843,7 +845,10 @@ const fetchUniversities = useCallback(async () => {
                     type="button"
                     variant="outline"
                     disabled={isLoading}
-                    onClick={() => (window.location.href = "/sign-in")}
+                    onClick={() => {
+                      sessionStorage.clear();
+                      window.location.href = "/sign-in";
+                    }}
                     className="flex-1 relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:backdrop-blur-lg smooth-transition rounded-lg text-white hover:text-white h-12 no-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 hover-lift"
                   >
                     {isCancelHovering && !isLoading && (
