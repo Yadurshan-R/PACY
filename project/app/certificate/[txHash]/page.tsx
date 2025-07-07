@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useParams } from 'next/navigation';
 import { Copy } from "lucide-react"; 
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type Certificate = {
   nic: string;
@@ -36,6 +37,7 @@ interface CertificateViewPageProps {
 }
 
 export default function CertificateViewPage() {
+  const router = useRouter();
   const params = useParams();
   const txHash = params?.txHash as string;
   const [data, setData] = useState<Metadata | null>(null);
@@ -374,7 +376,7 @@ export default function CertificateViewPage() {
               </button>
             </Link>
             <button
-                onClick={() => window.location.href = "http://localhost:3000/organizations"}
+                onClick={() => router.push('/organizations')}
                 className="designer-text bg-transparent border border-white/20 hover:bg-white/8 hover:border-white/40 text-white hover:text-white transition-all duration-300 rounded-xl h-12 px-8 text-base font-medium focus:ring-2 focus:ring-white/20 focus:ring-offset-0 relative overflow-hidden group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 -translate-x-full transition-transform duration-1000" />

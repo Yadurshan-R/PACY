@@ -536,7 +536,7 @@ export default function CreateCertificate({ onBack }: CreateCertificateProps) {
 
     const dataUrl = canvas.toDataURL({
       format: 'png',
-      multiplier: 1,
+      multiplier: 3,
     });
 
     canvas.getObjects().forEach((obj) => {
