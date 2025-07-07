@@ -32,20 +32,22 @@ export async function POST(request: Request) {
       );
     }
 
-    if(user.walletAddress != walletAddress) {
+    if (user.walletAddress) {
+      if (user.walletAddress === walletAddress) {
         return NextResponse.json(
-      {
-        message: "Wallet Address Mismatch."
-      },
-      { status: 409 })
-    }
+          {
+            message: "Already the wallet address has been stored.",
+          },
+          { status: 200 }
+        );
+      }
 
-    if(user.walletAddress) {
-         return NextResponse.json(
-      {
-        message: "Already the wallet address has been stored."
-      },
-      { status: 200 })
+      return NextResponse.json(
+        {
+          message: "Wallet Address Mismatch.",
+        },
+        { status: 409 }
+      );
     }
 
     // Update wallet address
